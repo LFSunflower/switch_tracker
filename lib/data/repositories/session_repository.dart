@@ -20,7 +20,7 @@ class SessionRepository {
           .maybeSingle();
 
       if (response == null) return null;
-      return FrontSession.fromMap(response as Map<String, dynamic>);
+      return FrontSession.fromMap(response);
     } on PostgrestException catch (e) {
       throw Exception('Erro ao buscar sessão: ${e.message}');
     } catch (e) {
@@ -80,7 +80,7 @@ class SessionRepository {
           .select()
           .single();
 
-      return FrontSession.fromMap(response as Map<String, dynamic>);
+      return FrontSession.fromMap(response);
     } on PostgrestException catch (e) {
       throw Exception('Erro ao criar sessão: ${e.message}');
     } catch (e) {

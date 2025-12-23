@@ -6,7 +6,6 @@ import 'auth/auth_gate.dart';
 import 'controllers/session_controller.dart';
 import 'controllers/user_controller.dart';
 import 'data/repositories/session_repository.dart';
-import 'core/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

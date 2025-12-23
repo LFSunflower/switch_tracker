@@ -51,7 +51,7 @@ class VersionRepository {
           .select()
           .single();
 
-      return Version.fromMap(response as Map<String, dynamic>);
+      return Version.fromMap(response);
     } on PostgrestException catch (e) {
       throw Exception('Erro ao criar versão: ${e.message}');
     } catch (e) {
