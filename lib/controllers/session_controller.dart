@@ -6,85 +6,139 @@ class SessionController extends ChangeNotifier {
   final SessionRepository _repository;
 
   FrontSession? _activeSession;
+  List<FrontSession> _allSessions = [];
   bool _isLoading = false;
-
-  SessionController(this._repository);
+  String? _errorMessage;
 
   FrontSession? get activeSession => _activeSession;
+  List<FrontSession> get allSessions => _allSessions;
   bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
 
-  /// Carrega sessão ativa ao iniciar o app
+  SessionController({required SessionRepository repository})
+      : _repository = repository;
+
+  /// Carrega a sessão ativa
   Future<void> loadActiveSession() async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
-    _activeSession = await _repository.fetchActiveSession();
-
-    _isLoading = false;
-    notifyListeners();
+    try {
+      _activeSession = await _repository.getActiveSession();
+    } catch (e) {
+      _errorMessage = e.toString();
+      print('SessionController - Erro ao carregar sessão: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
-  /// Inicia uma nova sessão
-  Future<void> startSession({
-    required List<String> versionIds,
+  /// Carrega todos os registros de sessão
+  Future<void> loadAllSessions() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _allSessions = await _repository.getAllSessions();
+    } catch (e) {
+      _errorMessage = e.toString();
+      print('SessionController - Erro ao carregar sessões: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Inicia uma nova sessão (fecha a anterior)
+  Future<void> startNewSession({
+    required List<String> alterIds,
     required int intensity,
-    required List<String> triggerIds,
+    List<String> triggers = const [],
     String? notes,
+    bool isCoFront = false,
   }) async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
-    // encerra sessão atual se existir
-    if (_activeSession != null) {
-      await _repository.endSession(_activeSession!.id);
+    try {
+      // Se há uma sessão ativa, encerra ela
+      if (_activeSession != null) {
+        await _repository.endSession(_activeSession!.id);
+      }
+
+      // Cria nova sessão
+      _activeSession = await _repository.startSession(
+        alterIds: alterIds,
+        intensity: intensity,
+        triggers: triggers,
+        notes: notes,
+        isCoFront: isCoFront,
+      );
+
+      // Recarrega histórico
+      await loadAllSessions();
+    } catch (e) {
+      _errorMessage = e.toString();
+      print('SessionController - Erro ao iniciar sessão: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-
-    final newSession = await _repository.createSession(
-      versionIds: versionIds,
-      intensity: intensity,
-      triggerIds: triggerIds,
-      notes: notes,
-    );
-
-    _activeSession = newSession;
-
-    _isLoading = false;
-    notifyListeners();
   }
 
-  /// Encerra manualmente
+  /// Finaliza a sessão ativa
   Future<void> endCurrentSession() async {
     if (_activeSession == null) return;
 
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
-    await _repository.endSession(_activeSession!.id);
-    _activeSession = null;
-
-    _isLoading = false;
-    notifyListeners();
+    try {
+      await _repository.endSession(_activeSession!.id);
+      _activeSession = null;
+      await loadAllSessions();
+    } catch (e) {
+      _errorMessage = e.toString();
+      print('SessionController - Erro ao finalizar sessão: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
-  /// Atualiza intensidade
-  Future<void> updateIntensity(int intensity) async {
-    if (_activeSession == null) return;
+  /// Atualiza notas de uma sessão
+  Future<void> updateSessionNotes(String sessionId, String notes) async {
+    try {
+      await _repository.updateSessionNotes(sessionId, notes);
+      if (_activeSession?.id == sessionId) {
+        _activeSession = _activeSession?.copyWith(notes: notes);
+        notifyListeners();
+      }
+    } catch (e) {
+      _errorMessage = e.toString();
+      print('SessionController - Erro ao atualizar notas: $e');
+    }
+  }
 
-    await _repository.updateIntensity(
-      _activeSession!.id,
-      intensity,
-    );
-
-    _activeSession = FrontSession(
-      id: _activeSession!.id,
-      versionIds: _activeSession!.versionIds,
-      startTime: _activeSession!.startTime,
-      endTime: _activeSession!.endTime,
-      intensity: intensity,
-      triggerIds: _activeSession!.triggerIds,
-      notes: _activeSession!.notes,
-    );
-
-    notifyListeners();
+  /// Atualiza gatilhos de uma sessão
+  Future<void> updateSessionTriggers(
+    String sessionId,
+    List<String> triggers,
+  ) async {
+    try {
+      await _repository.updateSessionTriggers(sessionId, triggers);
+      if (_activeSession?.id == sessionId) {
+        _activeSession = _activeSession?.copyWith(triggers: triggers);
+        notifyListeners();
+      }
+    } catch (e) {
+      _errorMessage = e.toString();
+      print('SessionController - Erro ao atualizar gatilhos: $e');
+    }
   }
 }

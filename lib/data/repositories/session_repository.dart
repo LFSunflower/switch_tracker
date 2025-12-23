@@ -2,77 +2,139 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/front_session.dart';
 
 class SessionRepository {
-  final SupabaseClient _client;
+  final SupabaseClient _client = Supabase.instance.client;
 
-  SessionRepository(this._client);
+  Future<FrontSession?> getActiveSession() async {
+    try {
+      final currentUser = _client.auth.currentUser;
+      if (currentUser == null) {
+        throw Exception('Usuário não autenticado');
+      }
 
-  /// Busca sessão ativa do usuário logado
-  Future<FrontSession?> fetchActiveSession() async {
-    final user = _client.auth.currentUser;
-    if (user == null) return null;
+      final response = await _client
+          .from('front_sessions')
+          .select()
+          .eq('user_id', currentUser.id)
+          .isFilter('end_time', null)
+          .order('start_time', ascending: false)
+          .maybeSingle();
 
-    final response = await _client
-        .from('front_sessions')
-        .select()
-        .eq('user_id', user.id)
-        .filter('end_time', 'is', null)
-        .limit(1)
-        .maybeSingle();
-
-    if (response == null) return null;
-
-    return FrontSession.fromMap(response);
-  }
-
-  /// Cria nova sessão
-  Future<FrontSession> createSession({
-    required List<String> versionIds,
-    required int intensity,
-    required List<String> triggerIds,
-    String? notes,
-  }) async {
-    final user = _client.auth.currentUser;
-    if (user == null) {
-      throw Exception('Usuário não autenticado');
+      if (response == null) return null;
+      return FrontSession.fromMap(response as Map<String, dynamic>);
+    } on PostgrestException catch (e) {
+      throw Exception('Erro ao buscar sessão: ${e.message}');
+    } catch (e) {
+      throw Exception('Erro desconhecido: $e');
     }
-
-    final response = await _client
-        .from('front_sessions')
-        .insert({
-          'user_id': user.id,
-          'versions': versionIds,
-          'triggers': triggerIds,
-          'intensity': intensity,
-          'notes': notes,
-          'start_time': DateTime.now().toIso8601String(),
-          'end_time': null,
-        })
-        .select()
-        .single();
-
-    return FrontSession.fromMap(response);
   }
 
-  /// Encerra sessão ativa
+  Future<List<FrontSession>> getAllSessions() async {
+    try {
+      final currentUser = _client.auth.currentUser;
+      if (currentUser == null) {
+        throw Exception('Usuário não autenticado');
+      }
+
+      final response = await _client
+          .from('front_sessions')
+          .select()
+          .eq('user_id', currentUser.id)
+          .order('start_time', ascending: false);
+
+      return (response as List<dynamic>)
+          .map((session) =>
+              FrontSession.fromMap(session as Map<String, dynamic>))
+          .toList();
+    } on PostgrestException catch (e) {
+      throw Exception('Erro ao buscar sessões: ${e.message}');
+    } catch (e) {
+      throw Exception('Erro desconhecido: $e');
+    }
+  }
+
+  Future<FrontSession> startSession({
+    required List<String> alterIds,
+    required int intensity,
+    List<String> triggers = const [],
+    String? notes,
+    bool isCoFront = false,
+  }) async {
+    try {
+      final currentUser = _client.auth.currentUser;
+      if (currentUser == null) {
+        throw Exception('Usuário não autenticado');
+      }
+
+      final response = await _client
+          .from('front_sessions')
+          .insert({
+            'user_id': currentUser.id,
+            'alter_ids': alterIds,
+            'intensity': intensity,
+            'triggers': triggers,
+            'notes': notes,
+            'is_co_front': isCoFront,
+            'start_time': DateTime.now().toIso8601String(),
+            'end_time': null,
+          })
+          .select()
+          .single();
+
+      return FrontSession.fromMap(response as Map<String, dynamic>);
+    } on PostgrestException catch (e) {
+      throw Exception('Erro ao criar sessão: ${e.message}');
+    } catch (e) {
+      throw Exception('Erro desconhecido: $e');
+    }
+  }
+
   Future<void> endSession(String sessionId) async {
-    await _client
-        .from('front_sessions')
-        .update({
-          'end_time': DateTime.now().toIso8601String(),
-        })
-        .eq('id', sessionId);
+    try {
+      final currentUser = _client.auth.currentUser;
+      if (currentUser == null) {
+        throw Exception('Usuário não autenticado');
+      }
+
+      await _client
+          .from('front_sessions')
+          .update({
+            'end_time': DateTime.now().toIso8601String(),
+          })
+          .eq('id', sessionId)
+          .eq('user_id', currentUser.id);
+    } on PostgrestException catch (e) {
+      throw Exception('Erro ao encerrar sessão: ${e.message}');
+    } catch (e) {
+      throw Exception('Erro desconhecido: $e');
+    }
   }
 
-  /// Atualiza intensidade da sessão
-  Future<void> updateIntensity(
+  Future<void> updateSessionNotes(String sessionId, String notes) async {
+    try {
+      await _client
+          .from('front_sessions')
+          .update({'notes': notes})
+          .eq('id', sessionId);
+    } on PostgrestException catch (e) {
+      throw Exception('Erro ao atualizar notas: ${e.message}');
+    } catch (e) {
+      throw Exception('Erro desconhecido: $e');
+    }
+  }
+
+  Future<void> updateSessionTriggers(
     String sessionId,
-    int intensity,
+    List<String> triggers,
   ) async {
-    await _client
-        .from('front_sessions')
-        .update({
-          'intensity': intensity,
-        })
-        .eq('id', sessionId);
+    try {
+      await _client
+          .from('front_sessions')
+          .update({'triggers': triggers})
+          .eq('id', sessionId);
+    } on PostgrestException catch (e) {
+      throw Exception('Erro ao atualizar gatilhos: ${e.message}');
+    } catch (e) {
+      throw Exception('Erro desconhecido: $e');
+    }
   }
 }
