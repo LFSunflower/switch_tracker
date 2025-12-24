@@ -1,0 +1,65 @@
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
+
+CREATE TABLE public.alters (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  color text,
+  description text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT alters_pkey PRIMARY KEY (id),
+  CONSTRAINT versions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profile(id)
+);
+CREATE TABLE public.front_session_alters (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  front_session_id uuid,
+  alter_id uuid,
+  is_primary boolean,
+  CONSTRAINT front_session_alters_pkey PRIMARY KEY (id),
+  CONSTRAINT front_session_versions_front_session_id_fkey FOREIGN KEY (front_session_id) REFERENCES public.front_sessions(id),
+  CONSTRAINT front_session_versions_version_id_fkey FOREIGN KEY (alter_id) REFERENCES public.alters(id)
+);
+CREATE TABLE public.front_session_triggers (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  front_session_id uuid,
+  trigger_id uuid,
+  CONSTRAINT front_session_triggers_pkey PRIMARY KEY (id),
+  CONSTRAINT front_session_triggers_front_session_id_fkey FOREIGN KEY (front_session_id) REFERENCES public.front_sessions(id),
+  CONSTRAINT front_session_triggers_trigger_id_fkey FOREIGN KEY (trigger_id) REFERENCES public.triggers(id)
+);
+CREATE TABLE public.front_sessions (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid,
+  start_time timestamp with time zone NOT NULL,
+  end_time timestamp with time zone,
+  intensity bigint,
+  notes text,
+  CONSTRAINT front_sessions_pkey PRIMARY KEY (id),
+  CONSTRAINT front_session_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profile(id)
+);
+CREATE TABLE public.observers (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  owner_id uuid DEFAULT gen_random_uuid(),
+  observer_id uuid,
+  can_write boolean,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT observers_pkey PRIMARY KEY (id),
+  CONSTRAINT observers_owner_id_fkey FOREIGN KEY (owner_id) REFERENCES public.profile(id),
+  CONSTRAINT observers_observer_id_fkey FOREIGN KEY (observer_id) REFERENCES public.profile(id)
+);
+CREATE TABLE public.profile (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  name text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  email text NOT NULL UNIQUE,
+  password text NOT NULL CHECK (length(password) >= 6),
+  CONSTRAINT profile_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.triggers (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid,
+  name text,
+  CONSTRAINT triggers_pkey PRIMARY KEY (id),
+  CONSTRAINT triggers_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profile(id)
+);

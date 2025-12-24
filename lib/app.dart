@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'controllers/user_controller.dart';
+import 'features/alters/alters_page.dart';
 import 'features/home/home_page.dart';
 import 'features/history/history_page.dart';
-import 'features/alters/alters_page.dart';
 import 'features/switch/switch_record_page.dart';
 
 class SwitchTrackerApp extends StatefulWidget {
@@ -17,70 +17,18 @@ class SwitchTrackerApp extends StatefulWidget {
 class _SwitchTrackerAppState extends State<SwitchTrackerApp> {
   int _selectedIndex = 0;
 
-  late final List<Widget> _pages;
-
-  @override
-  void initState() {
-    super.initState();
-    _pages = const [
-      HomePage(),
-      HistoryPage(),
-      AltersPage(),
-    ];
-  }
-
-  void _navigateToSwitchRecord(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const SwitchRecordPage(),
-      ),
-    );
-  }
-
-  void _showProfileMenu(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => ListView(
-        shrinkWrap: true,
-        children: [
-          ListTile(
-            leading: const Icon(Icons.person),
-            title: const Text('Perfil'),
-            onTap: () {
-              Navigator.pop(context);
-              // TODO: Navegar para página de perfil
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.settings),
-            title: const Text('Configurações'),
-            onTap: () {
-              Navigator.pop(context);
-              // TODO: Navegar para página de configurações
-            },
-          ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.logout),
-            title: const Text('Sair'),
-            textColor: Colors.red,
-            iconColor: Colors.red,
-            onTap: () async {
-              Navigator.pop(context);
-              await context.read<UserController>().logout();
-            },
-          ),
-        ],
-      ),
-    );
-  }
+  final List<Widget> _pages = const [
+    HomePage(),
+    HistoryPage(),
+    AltersPage(),
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Switch Tracker'),
-        centerTitle: true,
+        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.person),
@@ -112,6 +60,52 @@ class _SwitchTrackerAppState extends State<SwitchTrackerApp> {
         onPressed: () => _navigateToSwitchRecord(context),
         tooltip: 'Registrar novo switch',
         child: const Icon(Icons.swap_horiz),
+      ),
+    );
+  }
+
+  void _navigateToSwitchRecord(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const SwitchRecordPage(),
+        fullscreenDialog: true,
+      ),
+    );
+  }
+
+  void _showProfileMenu(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (buildContext) => ListView(
+        shrinkWrap: true,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.person),
+            title: const Text('Perfil'),
+            onTap: () {
+              Navigator.pop(buildContext);
+              // TODO: Navegar para página de perfil
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.settings),
+            title: const Text('Configurações'),
+            onTap: () {
+              Navigator.pop(buildContext);
+              // TODO: Navegar para página de configurações
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.logout),
+            title: const Text('Sair'),
+            onTap: () async {
+              Navigator.pop(buildContext);
+              if (mounted) {
+                await context.read<UserController>().logout();
+              }
+            },
+          ),
+        ],
       ),
     );
   }

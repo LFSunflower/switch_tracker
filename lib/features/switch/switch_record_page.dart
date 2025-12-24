@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../controllers/session_controller.dart';
-import '../../data/repositories/version_repository.dart';
+import '../../core/utils/logger.dart';
 import '../../data/models/version.dart';
-import 'widgets/version_selector.dart';
+import '../../data/repositories/version_repository.dart';
 import 'widgets/intensity_slider.dart';
 import 'widgets/trigger_selector.dart';
+import 'widgets/version_selector.dart';
 
 class SwitchRecordPage extends StatefulWidget {
   const SwitchRecordPage({super.key});
@@ -39,16 +40,19 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
   Future<void> _loadVersions() async {
     try {
       final versions = await _versionRepository.getAllVersions();
-      setState(() {
-        _allVersions = versions;
-        _isLoadingVersions = false;
-      });
+      if (mounted) {
+        setState(() {
+          _allVersions = versions;
+          _isLoadingVersions = false;
+        });
+      }
     } catch (e) {
       if (mounted) {
         setState(() => _isLoadingVersions = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erro ao carregar alters: $e')),
         );
+        AppLogger.error('Erro ao carregar alters: $e', StackTrace.current);
       }
     }
   }
@@ -83,6 +87,7 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erro ao registrar switch: $e')),
         );
+        AppLogger.error('Erro ao registrar switch: $e', StackTrace.current);
       }
     } finally {
       if (mounted) {
@@ -105,7 +110,6 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Seletor de Alters
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(16),
@@ -132,8 +136,6 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-
-                  // Co-Front toggle
                   Card(
                     child: CheckboxListTile(
                       title: const Text('É um co-front?'),
@@ -145,8 +147,6 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-
-                  // Intensity Slider
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(16),
@@ -172,8 +172,6 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-
-                  // Trigger Selector
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(16),
@@ -191,7 +189,8 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
                           TriggerSelector(
                             selectedTriggers: _selectedTriggers,
                             onSelectionChanged: (selectedTriggers) {
-                              setState(() => _selectedTriggers = selectedTriggers);
+                              setState(
+                                  () => _selectedTriggers = selectedTriggers);
                             },
                           ),
                         ],
@@ -199,8 +198,6 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-
-                  // Notes
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(16),
@@ -231,8 +228,6 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
                     ),
                   ),
                   const SizedBox(height: 24),
-
-                  // Submit Button
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
@@ -243,9 +238,6 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
                               height: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
-                                ),
                               ),
                             )
                           : const Icon(Icons.check),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../data/models/front_session.dart';
+
 import '../../../core/utils/time_utils.dart';
+import '../../../data/models/front_session.dart';
 
 class HistoryList extends StatelessWidget {
   final List<FrontSession> sessions;
@@ -9,6 +10,23 @@ class HistoryList extends StatelessWidget {
     super.key,
     required this.sessions,
   });
+
+  Color _getIntensityColor(int intensity) {
+    switch (intensity) {
+      case 1:
+        return Colors.green;
+      case 2:
+        return Colors.lightGreen.shade700;
+      case 3:
+        return Colors.orange;
+      case 4:
+        return Colors.deepOrange;
+      case 5:
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +38,7 @@ class HistoryList extends StatelessWidget {
               child: ListTile(
                 contentPadding: const EdgeInsets.all(16),
                 title: Text(
-                  session.alterIds.join(', '),
+                  session.alters.join(', '),
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 subtitle: Column(
@@ -82,7 +100,7 @@ class HistoryList extends StatelessWidget {
                         ),
                       ),
                     ),
-                    if (session.isCoFront)
+                    if (session.isCofront)
                       const Padding(
                         padding: EdgeInsets.only(top: 4),
                         child: Icon(
@@ -97,22 +115,5 @@ class HistoryList extends StatelessWidget {
           )
           .toList(),
     );
-  }
-
-  Color _getIntensityColor(int intensity) {
-    switch (intensity) {
-      case 1:
-        return Colors.green;
-      case 2:
-        return Colors.lightGreen.shade700;
-      case 3:
-        return Colors.orange;
-      case 4:
-        return Colors.deepOrange;
-      case 5:
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
   }
 }

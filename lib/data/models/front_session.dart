@@ -1,26 +1,26 @@
 class FrontSession {
   final String id;
   final String userId;
-  final List<String> alterIds;
+  final List<String> alters;
   final int intensity;
   final List<String> triggers;
   final String? notes;
   final DateTime startTime;
   final DateTime? endTime;
-  final bool isCoFront;
+  final bool isCofront;
   final DateTime createdAt;
   final DateTime? updatedAt;
 
-  const FrontSession({
+  FrontSession({
     required this.id,
     required this.userId,
-    required this.alterIds,
+    required this.alters,
     required this.intensity,
     this.triggers = const [],
     this.notes,
     required this.startTime,
     this.endTime,
-    this.isCoFront = false,
+    this.isCofront = false,
     required this.createdAt,
     this.updatedAt,
   });
@@ -34,7 +34,10 @@ class FrontSession {
   /// Duração formatada
   String get durationFormatted {
     final minutes = durationMinutes;
-    if (minutes < 60) {
+
+    if (minutes < 1) {
+      return '${DateTime.now().difference(startTime).inSeconds}s';
+    } else if (minutes < 60) {
       return '${minutes}m';
     } else if (minutes < 1440) {
       final hours = minutes ~/ 60;
@@ -53,26 +56,26 @@ class FrontSession {
   FrontSession copyWith({
     String? id,
     String? userId,
-    List<String>? alterIds,
+    List<String>? alters,
     int? intensity,
     List<String>? triggers,
     String? notes,
     DateTime? startTime,
     DateTime? endTime,
-    bool? isCoFront,
+    bool? isCofront,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
     return FrontSession(
       id: id ?? this.id,
       userId: userId ?? this.userId,
-      alterIds: alterIds ?? this.alterIds,
+      alters: alters ?? this.alters,
       intensity: intensity ?? this.intensity,
       triggers: triggers ?? this.triggers,
       notes: notes ?? this.notes,
       startTime: startTime ?? this.startTime,
       endTime: endTime ?? this.endTime,
-      isCoFront: isCoFront ?? this.isCoFront,
+      isCofront: isCofront ?? this.isCofront,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -82,18 +85,20 @@ class FrontSession {
     return FrontSession(
       id: map['id'] as String? ?? '',
       userId: map['user_id'] as String? ?? '',
-      alterIds: List<String>.from(map['alter_ids'] as List<dynamic>? ?? []),
+      alters: List<String>.from(map['alters'] as List? ?? []),
       intensity: map['intensity'] as int? ?? 3,
-      triggers: List<String>.from(map['triggers'] as List<dynamic>? ?? []),
+      triggers: List<String>.from(map['triggers'] as List? ?? []),
       notes: map['notes'] as String?,
       startTime: DateTime.parse(
-          map['start_time'] as String? ?? DateTime.now().toIso8601String()),
+        map['start_time'] as String? ?? DateTime.now().toIso8601String(),
+      ),
       endTime: map['end_time'] != null
           ? DateTime.parse(map['end_time'] as String)
           : null,
-      isCoFront: map['is_co_front'] as bool? ?? false,
+      isCofront: map['is_cofront'] as bool? ?? false,
       createdAt: DateTime.parse(
-          map['created_at'] as String? ?? DateTime.now().toIso8601String()),
+        map['created_at'] as String? ?? DateTime.now().toIso8601String(),
+      ),
       updatedAt: map['updated_at'] != null
           ? DateTime.parse(map['updated_at'] as String)
           : null,
@@ -104,13 +109,13 @@ class FrontSession {
     return {
       'id': id,
       'user_id': userId,
-      'alter_ids': alterIds,
+      'alters': alters,
       'intensity': intensity,
       'triggers': triggers,
       'notes': notes,
       'start_time': startTime.toIso8601String(),
       'end_time': endTime?.toIso8601String(),
-      'is_co_front': isCoFront,
+      'is_cofront': isCofront,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
     };
@@ -118,5 +123,5 @@ class FrontSession {
 
   @override
   String toString() =>
-      'FrontSession(id: $id, alterIds: $alterIds, intensity: $intensity)';
+      'FrontSession(id: $id, alters: $alters, intensity: $intensity)';
 }

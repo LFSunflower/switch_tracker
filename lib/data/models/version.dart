@@ -4,7 +4,7 @@ class Version {
   final String name;
   final String? pronoun;
   final String? description;
-  final String colorHex;
+  final String color;
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -14,7 +14,7 @@ class Version {
     required this.name,
     this.pronoun,
     this.description,
-    required this.colorHex,
+    required this.color,
     required this.createdAt,
     this.updatedAt,
   });
@@ -25,7 +25,7 @@ class Version {
     String? name,
     String? pronoun,
     String? description,
-    String? colorHex,
+    String? color,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -35,7 +35,7 @@ class Version {
       name: name ?? this.name,
       pronoun: pronoun ?? this.pronoun,
       description: description ?? this.description,
-      colorHex: colorHex ?? this.colorHex,
+      color: color ?? this.color,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -48,9 +48,10 @@ class Version {
       name: map['name'] as String? ?? '',
       pronoun: map['pronoun'] as String?,
       description: map['description'] as String?,
-      colorHex: map['color_hex'] as String? ?? '0xFF6A3AD3',
+      color: map['color'] as String? ?? '0xFF6A3AD3',
       createdAt: DateTime.parse(
-          map['created_at'] as String? ?? DateTime.now().toIso8601String()),
+        map['created_at'] as String? ?? DateTime.now().toIso8601String(),
+      ),
       updatedAt: map['updated_at'] != null
           ? DateTime.parse(map['updated_at'] as String)
           : null,
@@ -64,7 +65,7 @@ class Version {
       'name': name,
       'pronoun': pronoun,
       'description': description,
-      'color_hex': colorHex,
+      'color': color,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
     };

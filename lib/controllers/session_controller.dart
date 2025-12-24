@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../core/utils/logger.dart';
 import '../data/models/front_session.dart';
 import '../data/repositories/session_repository.dart';
 
@@ -26,9 +28,10 @@ class SessionController extends ChangeNotifier {
 
     try {
       _activeSession = await _repository.getActiveSession();
+      AppLogger.debug('Sessão ativa carregada: ${_activeSession?.id}');
     } catch (e) {
       _errorMessage = e.toString();
-      print('SessionController - Erro ao carregar sessão: $e');
+      AppLogger.error('Erro ao carregar sessão', StackTrace.current);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -43,9 +46,10 @@ class SessionController extends ChangeNotifier {
 
     try {
       _allSessions = await _repository.getAllSessions();
+      AppLogger.debug('${_allSessions.length} sessões carregadas');
     } catch (e) {
       _errorMessage = e.toString();
-      print('SessionController - Erro ao carregar sessões: $e');
+      AppLogger.error('Erro ao carregar sessões', StackTrace.current);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -65,12 +69,11 @@ class SessionController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Se há uma sessão ativa, encerra ela
       if (_activeSession != null) {
         await _repository.endSession(_activeSession!.id);
+        AppLogger.debug('Sessão anterior encerrada');
       }
 
-      // Cria nova sessão
       _activeSession = await _repository.startSession(
         alterIds: alterIds,
         intensity: intensity,
@@ -79,11 +82,11 @@ class SessionController extends ChangeNotifier {
         isCoFront: isCoFront,
       );
 
-      // Recarrega histórico
+      AppLogger.info('Nova sessão iniciada: ${_activeSession?.id}');
       await loadAllSessions();
     } catch (e) {
       _errorMessage = e.toString();
-      print('SessionController - Erro ao iniciar sessão: $e');
+      AppLogger.error('Erro ao iniciar sessão', StackTrace.current);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -101,10 +104,11 @@ class SessionController extends ChangeNotifier {
     try {
       await _repository.endSession(_activeSession!.id);
       _activeSession = null;
+      AppLogger.info('Sessão finalizada');
       await loadAllSessions();
     } catch (e) {
       _errorMessage = e.toString();
-      print('SessionController - Erro ao finalizar sessão: $e');
+      AppLogger.error('Erro ao finalizar sessão', StackTrace.current);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -117,11 +121,11 @@ class SessionController extends ChangeNotifier {
       await _repository.updateSessionNotes(sessionId, notes);
       if (_activeSession?.id == sessionId) {
         _activeSession = _activeSession?.copyWith(notes: notes);
-        notifyListeners();
       }
+      notifyListeners();
     } catch (e) {
       _errorMessage = e.toString();
-      print('SessionController - Erro ao atualizar notas: $e');
+      AppLogger.error('Erro ao atualizar notas', StackTrace.current);
     }
   }
 
@@ -134,11 +138,11 @@ class SessionController extends ChangeNotifier {
       await _repository.updateSessionTriggers(sessionId, triggers);
       if (_activeSession?.id == sessionId) {
         _activeSession = _activeSession?.copyWith(triggers: triggers);
-        notifyListeners();
       }
+      notifyListeners();
     } catch (e) {
       _errorMessage = e.toString();
-      print('SessionController - Erro ao atualizar gatilhos: $e');
+      AppLogger.error('Erro ao atualizar gatilhos', StackTrace.current);
     }
   }
 }

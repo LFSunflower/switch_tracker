@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../data/models/version.dart';
 
 class VersionSelector extends StatelessWidget {
@@ -23,6 +24,19 @@ class VersionSelector extends StatelessWidget {
     }
   }
 
+  Color _parseColorHex(String hexColor) {
+    try {
+      if (hexColor.startsWith('0x')) {
+        return Color(int.parse(hexColor));
+      } else if (hexColor.startsWith('#')) {
+        return Color(int.parse('0xFF${hexColor.substring(1)}'));
+      }
+      return Color(int.parse('0xFF$hexColor'));
+    } catch (e) {
+      return Colors.grey;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (versions.isEmpty) {
@@ -37,7 +51,7 @@ class VersionSelector extends StatelessWidget {
               const SizedBox(height: 16),
               ElevatedButton.icon(
                 onPressed: () {
-                  // TODO: Navegar para page de criar alter
+                  Navigator.of(context).pushNamed('/alters');
                 },
                 icon: const Icon(Icons.add),
                 label: const Text('Criar Alter'),
@@ -77,7 +91,7 @@ class VersionSelector extends StatelessWidget {
                         width: 60,
                         height: 60,
                         decoration: BoxDecoration(
-                          color: Color(int.parse(version.colorHex)),
+                          color: _parseColorHex(version.color),
                           shape: BoxShape.circle,
                         ),
                         child: Center(
@@ -102,7 +116,7 @@ class VersionSelector extends StatelessWidget {
                           fontSize: 14,
                         ),
                       ),
-                      if (version.pronoun != null && version.pronoun!.isNotEmpty)
+                      if (version.pronoun != null)
                         Text(
                           version.pronoun!,
                           style: const TextStyle(
