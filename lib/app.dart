@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'auth/auth_gate.dart';
 import 'controllers/user_controller.dart';
 import 'features/alters/alters_page.dart';
 import 'features/home/home_page.dart';
@@ -24,43 +25,62 @@ class _SwitchTrackerAppState extends State<SwitchTrackerApp> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    // Carregar usuário atual ao iniciar
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<UserController>();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Switch Tracker'),
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () => _showProfileMenu(context),
-          ),
-        ],
-      ),
-      body: _pages[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) => setState(() => _selectedIndex = index),
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.circle),
-            label: 'Status',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.timeline),
-            label: 'Histórico',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people),
-            label: 'Alters',
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _navigateToSwitchRecord(context),
-        tooltip: 'Registrar novo switch',
-        child: const Icon(Icons.swap_horiz),
-      ),
+    return Consumer<UserController>(
+      builder: (context, userController, _) {
+        // Se o usuário está autenticado, mostrar a home
+        // Caso contrário, mostrar a página de autenticação
+        if (userController.isAuthenticated) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Switch Tracker'),
+              elevation: 0,
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.person),
+                  onPressed: () => _showProfileMenu(context),
+                ),
+              ],
+            ),
+            body: _pages[_selectedIndex],
+            bottomNavigationBar: BottomNavigationBar(
+              currentIndex: _selectedIndex,
+              onTap: (index) => setState(() => _selectedIndex = index),
+              type: BottomNavigationBarType.fixed,
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.circle),
+                  label: 'Status',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.timeline),
+                  label: 'Histórico',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.people),
+                  label: 'Alters',
+                ),
+              ],
+            ),
+            floatingActionButton: FloatingActionButton(
+              onPressed: () => _navigateToSwitchRecord(context),
+              tooltip: 'Registrar novo switch',
+              child: const Icon(Icons.swap_horiz),
+            ),
+          );
+        } else {
+          return const AuthGate();
+        }
+      },
     );
   }
 

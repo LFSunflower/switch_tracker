@@ -5,11 +5,13 @@ import '../../../data/models/version.dart';
 class VersionCard extends StatelessWidget {
   final Version version;
   final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
   const VersionCard({
     super.key,
     required this.version,
     required this.onEdit,
+    required this.onDelete,
   });
 
   Color _parseColorHex(String hexColor) {
@@ -27,57 +29,84 @@ class VersionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = _parseColorHex(version.color);
-
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
-        contentPadding: const EdgeInsets.all(16),
         leading: Container(
-          width: 60,
-          height: 60,
+          width: 50,
+          height: 50,
           decoration: BoxDecoration(
-            color: color,
+            color: _parseColor(version.color),
             shape: BoxShape.circle,
           ),
           child: Center(
             child: Text(
-              version.name.isNotEmpty ? version.name[0].toUpperCase() : '?',
+              version.name.isNotEmpty
+                  ? version.name[0].toUpperCase()
+                  : '?',
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 24,
                 fontWeight: FontWeight.bold,
+                fontSize: 20,
               ),
             ),
           ),
         ),
-        title: Text(
-          version.name,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        ),
+        title: Text(version.name),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            if (version.pronoun != null)
-              Text(
-                'Pronome: ${version.pronoun}',
-                style: const TextStyle(fontSize: 12),
-              ),
-            if (version.description != null)
+            if (version.pronoun != null && version.pronoun!.isNotEmpty)
+              Text('Pronome: ${version.pronoun}'),
+            if (version.description != null &&
+                version.description!.isNotEmpty)
               Text(
                 version.description!,
-                style: const TextStyle(fontSize: 12),
-                maxLines: 2,
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
           ],
         ),
-        trailing: IconButton(
-          icon: const Icon(Icons.edit),
-          onPressed: onEdit,
-          tooltip: 'Editar alter',
+        trailing: PopupMenuButton(
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              child: const Row(
+                children: [
+                  Icon(Icons.edit, size: 20),
+                  SizedBox(width: 8),
+                  Text('Editar'),
+                ],
+              ),
+              onTap: onEdit,
+            ),
+            PopupMenuItem(
+              child: const Row(
+                children: [
+                  Icon(Icons.delete, size: 20, color: Colors.red),
+                  SizedBox(width: 8),
+                  Text('Deletar', style: TextStyle(color: Colors.red)),
+                ],
+              ),
+              onTap: onDelete,
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  Color _parseColor(String colorString) {
+    try {
+      if (colorString.startsWith('#')) {
+        return Color(int.parse('FF${colorString.substring(1)}', radix: 16));
+      } else if (colorString.startsWith('0x')) {
+        return Color(int.parse(colorString));
+      } else {
+        return Color(int.parse('FF$colorString', radix: 16));
+      }
+    } catch (e) {
+      return Colors.purple;
+    }
   }
 }

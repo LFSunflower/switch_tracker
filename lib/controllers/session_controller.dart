@@ -1,11 +1,11 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 import '../core/utils/logger.dart';
 import '../data/models/front_session.dart';
 import '../data/repositories/session_repository.dart';
 
 class SessionController extends ChangeNotifier {
-  final SessionRepository _repository;
+  final SessionRepository _repository = SessionRepository();
 
   FrontSession? _activeSession;
   List<FrontSession> _allSessions = [];
@@ -16,22 +16,26 @@ class SessionController extends ChangeNotifier {
   List<FrontSession> get allSessions => _allSessions;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
-
-  SessionController({required SessionRepository repository})
-      : _repository = repository;
+  bool get hasActiveSession => _activeSession != null;
 
   /// Carrega a sessão ativa
-  Future<void> loadActiveSession() async {
+  Future<void> loadActiveSessions() async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
       _activeSession = await _repository.getActiveSession();
-      AppLogger.debug('Sessão ativa carregada: ${_activeSession?.id}');
+      AppLogger.info(
+        _activeSession != null
+            ? 'Sessão ativa encontrada: ${_activeSession!.id}'
+            : 'Nenhuma sessão ativa',
+      );
+      notifyListeners();
     } catch (e) {
       _errorMessage = e.toString();
-      AppLogger.error('Erro ao carregar sessão', StackTrace.current);
+      AppLogger.error('Erro ao carregar sessão ativa: $e', StackTrace.current);
+      notifyListeners();
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -39,17 +43,26 @@ class SessionController extends ChangeNotifier {
   }
 
   /// Carrega todos os registros de sessão
-  Future<void> loadAllSessions() async {
+  Future<void> loadSessions() async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
       _allSessions = await _repository.getAllSessions();
-      AppLogger.debug('${_allSessions.length} sessões carregadas');
+      AppLogger.info('Sessões carregadas: ${_allSessions.length}');
+
+      // Também atualizar sessão ativa
+      _activeSession = _allSessions.firstWhere(
+        (s) => s.endTime == null,
+        orElse: () => _activeSession ?? _createEmptySession(),
+      );
+
+      notifyListeners();
     } catch (e) {
       _errorMessage = e.toString();
-      AppLogger.error('Erro ao carregar sessões', StackTrace.current);
+      AppLogger.error('Erro ao carregar sessões: $e', StackTrace.current);
+      notifyListeners();
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -57,7 +70,7 @@ class SessionController extends ChangeNotifier {
   }
 
   /// Inicia uma nova sessão (fecha a anterior)
-  Future<void> startNewSession({
+  Future<bool> startNewSession({
     required List<String> alterIds,
     required int intensity,
     List<String> triggers = const [],
@@ -69,12 +82,7 @@ class SessionController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      if (_activeSession != null) {
-        await _repository.endSession(_activeSession!.id);
-        AppLogger.debug('Sessão anterior encerrada');
-      }
-
-      _activeSession = await _repository.startSession(
+      final newSession = await _repository.startSession(
         alterIds: alterIds,
         intensity: intensity,
         triggers: triggers,
@@ -82,11 +90,17 @@ class SessionController extends ChangeNotifier {
         isCoFront: isCoFront,
       );
 
-      AppLogger.info('Nova sessão iniciada: ${_activeSession?.id}');
-      await loadAllSessions();
+      _activeSession = newSession;
+      _allSessions.insert(0, newSession);
+      AppLogger.info('Sessão iniciada: ${newSession.id}');
+
+      notifyListeners();
+      return true;
     } catch (e) {
       _errorMessage = e.toString();
-      AppLogger.error('Erro ao iniciar sessão', StackTrace.current);
+      AppLogger.error('Erro ao iniciar sessão: $e', StackTrace.current);
+      notifyListeners();
+      return false;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -94,8 +108,8 @@ class SessionController extends ChangeNotifier {
   }
 
   /// Finaliza a sessão ativa
-  Future<void> endCurrentSession() async {
-    if (_activeSession == null) return;
+  Future<bool> endActiveSession() async {
+    if (_activeSession == null) return false;
 
     _isLoading = true;
     _errorMessage = null;
@@ -103,46 +117,36 @@ class SessionController extends ChangeNotifier {
 
     try {
       await _repository.endSession(_activeSession!.id);
+      AppLogger.info('Sessão encerrada: ${_activeSession!.id}');
+
       _activeSession = null;
-      AppLogger.info('Sessão finalizada');
-      await loadAllSessions();
+      notifyListeners();
+      return true;
     } catch (e) {
       _errorMessage = e.toString();
-      AppLogger.error('Erro ao finalizar sessão', StackTrace.current);
+      AppLogger.error('Erro ao encerrar sessão: $e', StackTrace.current);
+      notifyListeners();
+      return false;
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  /// Atualiza notas de uma sessão
-  Future<void> updateSessionNotes(String sessionId, String notes) async {
-    try {
-      await _repository.updateSessionNotes(sessionId, notes);
-      if (_activeSession?.id == sessionId) {
-        _activeSession = _activeSession?.copyWith(notes: notes);
-      }
-      notifyListeners();
-    } catch (e) {
-      _errorMessage = e.toString();
-      AppLogger.error('Erro ao atualizar notas', StackTrace.current);
-    }
-  }
-
-  /// Atualiza gatilhos de uma sessão
-  Future<void> updateSessionTriggers(
-    String sessionId,
-    List<String> triggers,
-  ) async {
-    try {
-      await _repository.updateSessionTriggers(sessionId, triggers);
-      if (_activeSession?.id == sessionId) {
-        _activeSession = _activeSession?.copyWith(triggers: triggers);
-      }
-      notifyListeners();
-    } catch (e) {
-      _errorMessage = e.toString();
-      AppLogger.error('Erro ao atualizar gatilhos', StackTrace.current);
-    }
+  /// Método auxiliar para criar sessão vazia
+  FrontSession _createEmptySession() {
+    return FrontSession(
+      id: '',
+      userId: '',
+      alters: [],
+      intensity: 3,
+      triggers: [],
+      notes: null,
+      startTime: DateTime.now(),
+      endTime: null,
+      isCofront: false,
+      createdAt: DateTime.now(),
+      updatedAt: null,
+    );
   }
 }

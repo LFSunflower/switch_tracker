@@ -1,42 +1,90 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/utils/time_utils.dart';
-import '../../../data/models/front_session.dart';
+import '/../controllers/session_controller.dart';
+import '/../core/utils/time_utils.dart';
 
 class CurrentFrontCard extends StatelessWidget {
-  final FrontSession session;
+  final SessionController sessionController;
 
   const CurrentFrontCard({
     super.key,
-    required this.session,
+    required this.sessionController,
   });
-
-  Color _getIntensityColor(int intensity) {
-    switch (intensity) {
-      case 1:
-        return Colors.green;
-      case 2:
-        return Colors.lightGreen.shade700;
-      case 3:
-        return Colors.orange;
-      case 4:
-        return Colors.deepOrange;
-      case 5:
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
+    final activeSession = sessionController.activeSession;
+
+    if (activeSession == null) {
+      return Card(
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            children: [
+              Icon(
+                Icons.swap_horiz,
+                size: 48,
+                color: Colors.grey[600],
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Nenhuma sessão ativa',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Inicie um novo switch para começar',
+                style: TextStyle(color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Card(
-      elevation: 4,
-      child: Padding(
+      child: Container(
         padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.purple[400]!, Colors.purple[600]!],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const Text(
+              'Sessão Ativa',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              activeSession.alters.isNotEmpty
+                  ? activeSession.alters.join(', ')
+                  : 'Sem identificação',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -44,113 +92,57 @@ class CurrentFrontCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Em controle',
+                      'Duração',
                       style: TextStyle(
+                        color: Colors.white70,
                         fontSize: 12,
-                        color: Colors.grey,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      session.alters.join(', '),
+                      TimeUtils.formatDuration(
+                        DateTime.now().difference(activeSession.startTime),
+                      ),
                       style: const TextStyle(
-                        fontSize: 20,
+                        color: Colors.white,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
                 ),
-                if (session.isCofront)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade100,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Text(
-                      'Co-front',
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Intensidade',
                       style: TextStyle(
+                        color: Colors.white70,
                         fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.blue,
                       ),
                     ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                const Text('Intensidade:'),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _getIntensityColor(session.intensity),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    'Nível ${session.intensity}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 12,
+                    const SizedBox(height: 4),
+                    Text(
+                      '${activeSession.intensity}/5',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
+                  ],
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    sessionController.endActiveSession();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
                   ),
+                  child: const Text('Encerrar'),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              'Tempo: ${session.durationFormatted}',
-              style: const TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Início: ${TimeUtils.formatDateTime(session.startTime)}',
-              style: const TextStyle(
-                fontSize: 12,
-                color: Colors.grey,
-              ),
-            ),
-            if (session.triggers.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              const Text(
-                'Gatilhos:',
-                style: TextStyle(fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(height: 4),
-              Wrap(
-                spacing: 4,
-                children: session.triggers
-                    .map(
-                      (trigger) => Chip(
-                        label: Text(trigger),
-                        labelStyle: const TextStyle(fontSize: 11),
-                        padding: EdgeInsets.zero,
-                      ),
-                    )
-                    .toList(),
-              ),
-            ],
-            if (session.notes != null && session.notes!.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              const Text(
-                'Notas:',
-                style: TextStyle(fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                session.notes!,
-                style: const TextStyle(fontSize: 12),
-              ),
-            ],
           ],
         ),
       ),

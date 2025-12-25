@@ -1,8 +1,164 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  static final light = ThemeData(
+  static const primaryColor = Color(0xFF6A3AD3);
+  static const accentColor = Color(0xFF8B5CF6);
+  static const backgroundColor = Color(0xFFFAFAFA);
+  static const darkBackgroundColor = Color(0xFF121212);
+
+  /// Tema Light
+  static final lightTheme = ThemeData(
     useMaterial3: true,
-    colorSchemeSeed: Colors.deepPurple,
+    brightness: Brightness.light,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: primaryColor,
+      brightness: Brightness.light,
+    ),
+    scaffoldBackgroundColor: backgroundColor,
+    appBarTheme: AppBarTheme(
+      elevation: 0,
+      backgroundColor: primaryColor,
+      foregroundColor: Colors.white,
+      centerTitle: true,
+      titleTextStyle: const TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+      ),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: primaryColor,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: primaryColor,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: primaryColor,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      ),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Colors.grey),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Colors.grey),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: primaryColor, width: 2),
+      ),
+      labelStyle: const TextStyle(color: Colors.grey),
+    ),
+    cardTheme: CardThemeData(
+      elevation: 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      color: Colors.white,
+    ),
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      backgroundColor: Colors.white,
+      selectedItemColor: primaryColor,
+      unselectedItemColor: Colors.grey,
+      elevation: 8,
+    ),
+  );
+
+  /// Tema Dark
+  static final darkTheme = ThemeData(
+    useMaterial3: true,
+    brightness: Brightness.dark,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: primaryColor,
+      brightness: Brightness.dark,
+    ),
+    scaffoldBackgroundColor: darkBackgroundColor,
+    appBarTheme: AppBarTheme(
+      elevation: 0,
+      backgroundColor: primaryColor,
+      foregroundColor: Colors.white,
+      centerTitle: true,
+      titleTextStyle: const TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+      ),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: primaryColor,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: accentColor,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: accentColor,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      ),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: const Color(0xFF1E1E1E),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Colors.grey),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Colors.grey),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: primaryColor, width: 2),
+      ),
+      labelStyle: const TextStyle(color: Colors.grey),
+    ),
+    cardTheme: CardThemeData(
+      elevation: 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      color: const Color(0xFF1E1E1E),
+    ),
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      backgroundColor: const Color(0xFF1E1E1E),
+      selectedItemColor: primaryColor,
+      unselectedItemColor: Colors.grey,
+      elevation: 8,
+    ),
   );
 }

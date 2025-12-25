@@ -6,17 +6,21 @@ import 'auth/auth_gate.dart';
 import 'controllers/session_controller.dart';
 import 'controllers/user_controller.dart';
 import 'controllers/version_controller.dart';
-import 'data/repositories/session_repository.dart';
-import 'data/repositories/version_repository.dart';
+import 'core/theme/app_theme.dart';
+import 'core/utils/logger.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Supabase.initialize(
-    url: 'https://hnmozwmncnlcatytctgq.supabase.co',
-    anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhubW96d21uY25sY2F0eXRjdGdxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyNjcyMTIsImV4cCI6MjA4MTg0MzIxMn0.sCcHBdCEcTqeXy21CvaORHeHyP4gheUCg4PWadocF-U',
-  );
+  try {
+    await Supabase.initialize(
+      url: 'https://hnmozwmncnlcatytctgq.supabase.co',
+      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhubW96d21uY25sY2F0eXRjdGdxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyNjcyMTIsImV4cCI6MjA4MTg0MzIxMn0.sCcHBdCEcTqeXy21CvaORHeHyP4gheUCg4PWadocF-U',
+    );
+    AppLogger.info('Supabase inicializado com sucesso');
+  } catch (e) {
+    AppLogger.error('Erro ao inicializar Supabase: $e', StackTrace.current);
+  }
 
   runApp(const MyApp());
 }
@@ -28,39 +32,23 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<UserController>(
+        ChangeNotifierProvider(
           create: (_) => UserController(),
-          lazy: false, // Inicializa imediatamente
         ),
-        Provider<SessionRepository>(
-          create: (_) => SessionRepository(),
-          lazy: false,
+        ChangeNotifierProvider(
+          create: (_) => VersionController(),
         ),
-        Provider<VersionRepository>(
-          create: (_) => VersionRepository(),
-          lazy: false,
-        ),
-        ChangeNotifierProvider<SessionController>(
-          create: (context) => SessionController(
-            repository: context.read<SessionRepository>(),
-          ),
-          lazy: false,
-        ),
-        ChangeNotifierProvider<VersionController>(
-          create: (context) => VersionController(
-            repository: context.read<VersionRepository>(),
-          ),
-          lazy: false,
+        ChangeNotifierProvider(
+          create: (_) => SessionController(),
         ),
       ],
       child: MaterialApp(
-        debugShowCheckedModeBanner: false,
         title: 'Switch Tracker',
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.system,
         home: const AuthGate(),
-        theme: ThemeData(
-          useMaterial3: true,
-          colorSchemeSeed: const Color.fromARGB(255, 103, 58, 183),
-         )
+        debugShowCheckedModeBanner: false,
       ),
     );
   }

@@ -1,11 +1,11 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 import '../core/utils/logger.dart';
 import '../data/models/version.dart';
 import '../data/repositories/version_repository.dart';
 
 class VersionController extends ChangeNotifier {
-  final VersionRepository _repository;
+  final VersionRepository _repository = VersionRepository();
 
   List<Version> _allVersions = [];
   bool _isLoading = false;
@@ -15,21 +15,20 @@ class VersionController extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  VersionController({required VersionRepository repository})
-      : _repository = repository;
-
-  /// Carrega todas as versões
-  Future<void> loadAllVersions() async {
+  /// Carrega todas as versões do usuário
+  Future<void> loadVersions() async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
       _allVersions = await _repository.getAllVersions();
-      AppLogger.debug('${_allVersions.length} versões carregadas');
+      AppLogger.info('Versões carregadas com sucesso: ${_allVersions.length}');
+      notifyListeners();
     } catch (e) {
       _errorMessage = e.toString();
-      AppLogger.error('Erro ao carregar versões', StackTrace.current);
+      AppLogger.error('Erro ao carregar versões: $e', StackTrace.current);
+      notifyListeners();
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -63,7 +62,8 @@ class VersionController extends ChangeNotifier {
       return newVersion;
     } catch (e) {
       _errorMessage = e.toString();
-      AppLogger.error('Erro ao criar versão', StackTrace.current);
+      AppLogger.error('Erro ao criar versão: $e', StackTrace.current);
+      notifyListeners();
       return null;
     } finally {
       _isLoading = false;
@@ -106,7 +106,8 @@ class VersionController extends ChangeNotifier {
       return updatedVersion;
     } catch (e) {
       _errorMessage = e.toString();
-      AppLogger.error('Erro ao atualizar versão', StackTrace.current);
+      AppLogger.error('Erro ao atualizar versão: $e', StackTrace.current);
+      notifyListeners();
       return null;
     } finally {
       _isLoading = false;
@@ -115,24 +116,36 @@ class VersionController extends ChangeNotifier {
   }
 
   /// Deleta uma versão
-  Future<bool> deleteVersion(String id) async {
+  Future<bool> deleteVersion(String versionId) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      await _repository.deleteVersion(id);
-      _allVersions.removeWhere((v) => v.id == id);
-      AppLogger.info('Versão deletada: $id');
+      await _repository.deleteVersion(versionId);
+      _allVersions.removeWhere((v) => v.id == versionId);
+
+      AppLogger.info('Versão deletada com sucesso: $versionId');
       notifyListeners();
       return true;
     } catch (e) {
       _errorMessage = e.toString();
-      AppLogger.error('Erro ao deletar versão', StackTrace.current);
+      AppLogger.error('Erro ao deletar versão: $e', StackTrace.current);
+      notifyListeners();
       return false;
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  /// Busca uma versão específica pelo ID
+  Version? getVersionById(String versionId) {
+    try {
+      return _allVersions.firstWhere((v) => v.id == versionId);
+    } catch (e) {
+      AppLogger.warning('Versão não encontrada: $versionId');
+      return null;
     }
   }
 }
