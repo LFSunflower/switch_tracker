@@ -42,6 +42,7 @@ class VersionController extends ChangeNotifier {
     String? pronoun,
     String? description,
     required String colorHex,
+    String? avatarUrl,
   }) async {
     _isLoading = true;
     _errorMessage = null;
@@ -53,6 +54,7 @@ class VersionController extends ChangeNotifier {
         pronoun: pronoun,
         description: description,
         colorHex: colorHex,
+        avatarUrl: avatarUrl,
       );
 
       _allVersions.add(newVersion);
@@ -76,6 +78,8 @@ class VersionController extends ChangeNotifier {
     String? pronoun,
     String? description,
     String? colorHex,
+    String? avatarUrl,
+    bool? isActive,
   }) async {
     _isLoading = true;
     _errorMessage = null;
@@ -88,6 +92,8 @@ class VersionController extends ChangeNotifier {
         pronoun: pronoun,
         description: description,
         colorHex: colorHex,
+        avatarUrl: avatarUrl,
+        isActive: isActive,
       );
 
       final index = _allVersions.indexWhere((v) => v.id == id);

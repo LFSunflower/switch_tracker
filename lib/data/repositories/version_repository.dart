@@ -63,6 +63,7 @@ class VersionRepository {
     String? pronoun,
     String? description,
     required String colorHex,
+    String? avatarUrl,
   }) async {
     try {
       final currentUser = _client.auth.currentUser;
@@ -76,6 +77,8 @@ class VersionRepository {
         'pronoun': pronoun,
         'description': description,
         'color': colorHex,
+        'avatar_url': avatarUrl,
+        'is_active': true,
       };
 
       AppLogger.info('Criando versão com dados: $createData');
@@ -107,6 +110,8 @@ class VersionRepository {
     String? pronoun,
     String? description,
     String? colorHex,
+    String? avatarUrl,
+    bool? isActive,
   }) async {
     try {
       final updateData = <String, dynamic>{};
@@ -114,6 +119,8 @@ class VersionRepository {
       if (pronoun != null) updateData['pronoun'] = pronoun;
       if (description != null) updateData['description'] = description;
       if (colorHex != null) updateData['color'] = colorHex;
+      if (avatarUrl != null) updateData['avatar_url'] = avatarUrl;
+      if (isActive != null) updateData['is_active'] = isActive;
 
       if (updateData.isEmpty) {
         final currentVersion = await getVersionById(versionId);

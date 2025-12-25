@@ -1,20 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'register_page.dart';
+import '../core/utils/logger.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  final VoidCallback onSwitchToRegister;
+
+  const LoginPage({
+    super.key,
+    required this.onSwitchToRegister,
+  });
 
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+
+  bool _obscurePassword = true;
   bool _isLoading = false;
-  String? _errorMessage;
 
   @override
   void dispose() {
@@ -24,26 +31,54 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _login() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
 
     try {
-      await Supabase.instance.client.auth.signInWithPassword(
+      final supabase = Supabase.instance.client;
+
+      final response = await supabase.auth.signInWithPassword(
         email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
+        password: _passwordController.text,
       );
 
-      if (mounted) {
+      if (!mounted) return;
+
+      if (response.user != null) {
+        AppLogger.info('Usuário logado com sucesso: ${response.user!.email}');
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Login realizado com sucesso!')),
         );
       }
     } on AuthException catch (e) {
-      setState(() => _errorMessage = e.message);
+      AppLogger.error('Erro de autenticação: ${e.message}');
+
+      if (mounted) {
+        String errorMessage = e.message;
+
+        // Traduzir mensagens de erro comuns
+        if (errorMessage.contains('Invalid login credentials')) {
+          errorMessage = 'E-mail ou senha incorretos';
+        } else if (errorMessage.contains('User not found')) {
+          errorMessage = 'Usuário não encontrado';
+        } else if (errorMessage.contains('Email not confirmed')) {
+          errorMessage = 'E-mail não confirmado';
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro: $errorMessage')),
+        );
+      }
     } catch (e) {
-      setState(() => _errorMessage = 'Erro desconhecido: $e');
+      AppLogger.error('Erro desconhecido ao fazer login: $e', StackTrace.current);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao fazer login: $e')),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -54,19 +89,18 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+      appBar: AppBar(
+        title: const Text('Login'),
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 48),
-              const Icon(
-                Icons.swap_horiz,
-                size: 64,
-              ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 64),
               const Text(
                 'Switch Tracker',
                 textAlign: TextAlign.center,
@@ -75,81 +109,99 @@ class _LoginPageState extends State<LoginPage> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
               const Text(
-                'Acompanhe seus switches',
+                'Bem-vindo de volta!',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 16,
                   color: Colors.grey,
                 ),
               ),
-              const SizedBox(height: 48),
-              if (_errorMessage != null)
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade100,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    _errorMessage!,
-                    style: TextStyle(color: Colors.red.shade900),
-                  ),
-                ),
-              const SizedBox(height: 16),
-              TextField(
+              const SizedBox(height: 64),
+
+              // Email
+              TextFormField(
                 controller: _emailController,
                 decoration: InputDecoration(
-                  labelText: 'Email',
+                  labelText: 'E-mail',
+                  prefixIcon: const Icon(Icons.email),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  prefixIcon: const Icon(Icons.email),
                 ),
                 keyboardType: TextInputType.emailAddress,
-                enabled: !_isLoading,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'O e-mail é obrigatório';
+                  }
+                  if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                    return 'E-mail inválido';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
-              TextField(
+
+              // Senha
+              TextFormField(
                 controller: _passwordController,
                 decoration: InputDecoration(
                   labelText: 'Senha',
+                  prefixIcon: const Icon(Icons.lock),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                    ),
+                    onPressed: () {
+                      setState(
+                        () => _obscurePassword = !_obscurePassword,
+                      );
+                    },
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  prefixIcon: const Icon(Icons.lock),
                 ),
-                obscureText: true,
-                enabled: !_isLoading,
+                obscureText: _obscurePassword,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'A senha é obrigatória';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 24),
-              ElevatedButton(
+
+              // Botão de Login
+              ElevatedButton.icon(
                 onPressed: _isLoading ? null : _login,
-                child: _isLoading
+                icon: _isLoading
                     ? const SizedBox(
-                        height: 20,
                         width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                        ),
                       )
-                    : const Text('Entrar'),
+                    : const Icon(Icons.login),
+                label: Text(_isLoading ? 'Entrando...' : 'Entrar'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
               ),
               const SizedBox(height: 16),
+
+              // Link para Registro
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text('Não tem conta? '),
                   TextButton(
-                    onPressed: _isLoading
-                        ? null
-                        : () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const RegisterPage(),
-                              ),
-                            );
-                          },
-                    child: const Text('Cadastre-se'),
+                    onPressed: widget.onSwitchToRegister,
+                    child: const Text('Cadastre-se aqui'),
                   ),
                 ],
               ),

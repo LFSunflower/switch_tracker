@@ -5,6 +5,8 @@ class Version {
   final String? pronoun;
   final String? description;
   final String color;
+  final String? avatarUrl;
+  final bool isActive;
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -15,6 +17,8 @@ class Version {
     this.pronoun,
     this.description,
     required this.color,
+    this.avatarUrl,
+    this.isActive = true,
     required this.createdAt,
     this.updatedAt,
   });
@@ -26,6 +30,8 @@ class Version {
     String? pronoun,
     String? description,
     String? color,
+    String? avatarUrl,
+    bool? isActive,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -36,6 +42,8 @@ class Version {
       pronoun: pronoun ?? this.pronoun,
       description: description ?? this.description,
       color: color ?? this.color,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      isActive: isActive ?? this.isActive,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -48,7 +56,9 @@ class Version {
       name: map['name'] as String? ?? '',
       pronoun: map['pronoun'] as String?,
       description: map['description'] as String?,
-      color: map['color'] as String? ?? '0xFF6A3AD3',
+      color: map['color'] as String? ?? '#6A3AD3',
+      avatarUrl: map['avatar_url'] as String?,
+      isActive: map['is_active'] as bool? ?? true,
       createdAt: DateTime.parse(
         map['created_at'] as String? ?? DateTime.now().toIso8601String(),
       ),
@@ -66,6 +76,8 @@ class Version {
       'pronoun': pronoun,
       'description': description,
       'color': color,
+      'avatar_url': avatarUrl,
+      'is_active': isActive,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
     };
