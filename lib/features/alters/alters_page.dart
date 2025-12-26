@@ -17,17 +17,20 @@ class _AltersPageState extends State<AltersPage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadVersions();
-    });
+    // Não carregar aqui, deixar que a HomePage carregue
   }
 
   Future<void> _loadVersions() async {
-    final controller = context.read<VersionController>();
     try {
+      final controller = context.read<VersionController>();
       await controller.loadVersions();
     } catch (e) {
       AppLogger.error('Erro ao carregar alters: $e', StackTrace.current);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao carregar: $e')),
+        );
+      }
     }
   }
 

@@ -17,6 +17,8 @@ class VersionController extends ChangeNotifier {
 
   /// Carrega todas as versões do usuário
   Future<void> loadVersions() async {
+    if (_isLoading) return;
+
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -24,11 +26,9 @@ class VersionController extends ChangeNotifier {
     try {
       _allVersions = await _repository.getAllVersions();
       AppLogger.info('Versões carregadas com sucesso: ${_allVersions.length}');
-      notifyListeners();
     } catch (e) {
       _errorMessage = e.toString();
       AppLogger.error('Erro ao carregar versões: $e', StackTrace.current);
-      notifyListeners();
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -40,6 +40,10 @@ class VersionController extends ChangeNotifier {
     required String name,
     String? pronoun,
     String? description,
+    String? function,
+    String? likes,
+    String? dislikes,
+    String? safetyInstructions,
     required String colorHex,
     String? avatarUrl,
   }) async {
@@ -52,6 +56,10 @@ class VersionController extends ChangeNotifier {
         name: name,
         pronoun: pronoun,
         description: description,
+        function: function,
+        likes: likes,
+        dislikes: dislikes,
+        safetyInstructions: safetyInstructions,
         colorHex: colorHex,
         avatarUrl: avatarUrl,
       );
@@ -77,6 +85,10 @@ class VersionController extends ChangeNotifier {
     String? name,
     String? pronoun,
     String? description,
+    String? function,
+    String? likes,
+    String? dislikes,
+    String? safetyInstructions,
     String? colorHex,
     String? avatarUrl,
     bool? isActive,
@@ -91,6 +103,10 @@ class VersionController extends ChangeNotifier {
         name: name,
         pronoun: pronoun,
         description: description,
+        function: function,
+        likes: likes,
+        dislikes: dislikes,
+        safetyInstructions: safetyInstructions,
         colorHex: colorHex,
         avatarUrl: avatarUrl,
         isActive: isActive,

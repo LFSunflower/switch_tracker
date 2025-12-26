@@ -4,6 +4,10 @@ class Version {
   final String name;
   final String? pronoun;
   final String? description;
+  final String? function;
+  final String? likes;
+  final String? dislikes;
+  final String? safetyInstructions;
   final String color;
   final String? avatarUrl;
   final bool isActive;
@@ -16,6 +20,10 @@ class Version {
     required this.name,
     this.pronoun,
     this.description,
+    this.function,
+    this.likes,
+    this.dislikes,
+    this.safetyInstructions,
     required this.color,
     this.avatarUrl,
     this.isActive = true,
@@ -29,6 +37,10 @@ class Version {
     String? name,
     String? pronoun,
     String? description,
+    String? function,
+    String? likes,
+    String? dislikes,
+    String? safetyInstructions,
     String? color,
     String? avatarUrl,
     bool? isActive,
@@ -41,6 +53,10 @@ class Version {
       name: name ?? this.name,
       pronoun: pronoun ?? this.pronoun,
       description: description ?? this.description,
+      function: function ?? this.function,
+      likes: likes ?? this.likes,
+      dislikes: dislikes ?? this.dislikes,
+      safetyInstructions: safetyInstructions ?? this.safetyInstructions,
       color: color ?? this.color,
       avatarUrl: avatarUrl ?? this.avatarUrl,
       isActive: isActive ?? this.isActive,
@@ -56,6 +72,10 @@ class Version {
       name: map['name'] as String? ?? '',
       pronoun: map['pronoun'] as String?,
       description: map['description'] as String?,
+      function: map['function'] as String?,
+      likes: map['likes'] as String?,
+      dislikes: map['dislikes'] as String?,
+      safetyInstructions: map['safety_instructions'] as String?,
       color: map['color'] as String? ?? '#6A3AD3',
       avatarUrl: map['avatar_url'] as String?,
       isActive: map['is_active'] as bool? ?? true,
@@ -75,6 +95,10 @@ class Version {
       'name': name,
       'pronoun': pronoun,
       'description': description,
+      'function': function,
+      'likes': likes,
+      'dislikes': dislikes,
+      'safety_instructions': safetyInstructions,
       'color': color,
       'avatar_url': avatarUrl,
       'is_active': isActive,

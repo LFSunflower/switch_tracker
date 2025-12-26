@@ -24,7 +24,8 @@ class VersionRepository {
       AppLogger.debug('Resposta do banco (getAllVersions): $response');
 
       return (response as List<dynamic>)
-          .map((version) => Version.fromMap(version as Map<String, dynamic>))
+          .map((version) =>
+              Version.fromMap(version as Map<String, dynamic>))
           .toList();
     } on PostgrestException catch (e) {
       AppLogger.error('Erro PostgreSQL ao buscar versões: ${e.message}');
@@ -62,6 +63,10 @@ class VersionRepository {
     required String name,
     String? pronoun,
     String? description,
+    String? function,
+    String? likes,
+    String? dislikes,
+    String? safetyInstructions,
     required String colorHex,
     String? avatarUrl,
   }) async {
@@ -71,15 +76,35 @@ class VersionRepository {
         throw Exception('Usuário não autenticado');
       }
 
-      final createData = {
+      final createData = <String, dynamic>{
         'user_id': currentUser.id,
         'name': name,
-        'pronoun': pronoun,
-        'description': description,
         'color': colorHex,
-        'avatar_url': avatarUrl,
         'is_active': true,
       };
+
+      // Adicionar campos opcionais apenas se não forem nulos
+      if (pronoun != null && pronoun.isNotEmpty) {
+        createData['pronoun'] = pronoun;
+      }
+      if (description != null && description.isNotEmpty) {
+        createData['description'] = description;
+      }
+      if (function != null && function.isNotEmpty) {
+        createData['function'] = function;
+      }
+      if (likes != null && likes.isNotEmpty) {
+        createData['likes'] = likes;
+      }
+      if (dislikes != null && dislikes.isNotEmpty) {
+        createData['dislikes'] = dislikes;
+      }
+      if (safetyInstructions != null && safetyInstructions.isNotEmpty) {
+        createData['safety_instructions'] = safetyInstructions;
+      }
+      if (avatarUrl != null && avatarUrl.isNotEmpty) {
+        createData['avatar_url'] = avatarUrl;
+      }
 
       AppLogger.info('Criando versão com dados: $createData');
 
@@ -109,6 +134,10 @@ class VersionRepository {
     String? name,
     String? pronoun,
     String? description,
+    String? function,
+    String? likes,
+    String? dislikes,
+    String? safetyInstructions,
     String? colorHex,
     String? avatarUrl,
     bool? isActive,
@@ -118,6 +147,10 @@ class VersionRepository {
       if (name != null) updateData['name'] = name;
       if (pronoun != null) updateData['pronoun'] = pronoun;
       if (description != null) updateData['description'] = description;
+      if (function != null) updateData['function'] = function;
+      if (likes != null) updateData['likes'] = likes;
+      if (dislikes != null) updateData['dislikes'] = dislikes;
+      if (safetyInstructions != null) updateData['safety_instructions'] = safetyInstructions;
       if (colorHex != null) updateData['color'] = colorHex;
       if (avatarUrl != null) updateData['avatar_url'] = avatarUrl;
       if (isActive != null) updateData['is_active'] = isActive;
@@ -141,7 +174,8 @@ class VersionRepository {
 
       AppLogger.debug('Resposta do banco (updateVersion): $response');
 
-      final updatedVersion = Version.fromMap(response as Map<String, dynamic>);
+      final updatedVersion =
+          Version.fromMap(response as Map<String, dynamic>);
       AppLogger.info('Versão atualizada com sucesso: ${updatedVersion.name}');
       return updatedVersion;
     } on PostgrestException catch (e) {
@@ -158,10 +192,7 @@ class VersionRepository {
     try {
       AppLogger.info('Deletando versão: $versionId');
 
-      await _client
-          .from(_tableName)
-          .delete()
-          .eq('id', versionId);
+      await _client.from(_tableName).delete().eq('id', versionId);
 
       AppLogger.info('Versão deletada com sucesso: $versionId');
     } on PostgrestException catch (e) {

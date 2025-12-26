@@ -190,4 +190,21 @@ class SessionRepository {
       throw Exception('Erro desconhecido: $e');
     }
   }
+
+  /// Deletar uma sessão
+  Future<void> deleteSession(String sessionId) async {
+    try {
+      AppLogger.info('Deletando sessão: $sessionId');
+
+      await _client.from(_tableName).delete().eq('id', sessionId);
+
+      AppLogger.info('Sessão deletada com sucesso: $sessionId');
+    } on PostgrestException catch (e) {
+      AppLogger.error('Erro PostgreSQL ao deletar sessão: ${e.message}');
+      throw Exception('Erro ao deletar sessão: ${e.message}');
+    } catch (e) {
+      AppLogger.error('Erro desconhecido ao deletar sessão: $e', StackTrace.current);
+      throw Exception('Erro desconhecido: $e');
+    }
+  }
 }

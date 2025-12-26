@@ -18,8 +18,41 @@ class SessionController extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   bool get hasActiveSession => _activeSession != null;
 
+  /// Carrega todas as sessões
+  Future<void> loadSessions() async {
+    // Não notificar se já está carregando
+    if (_isLoading) return;
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _allSessions = await _repository.getAllSessions();
+      AppLogger.info('Sessões carregadas: ${_allSessions.length}');
+
+      // Atualizar sessão ativa
+      _activeSession = _allSessions.firstWhere(
+        (s) => s.endTime == null,
+        orElse: () => _createEmptySession(),
+      );
+
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString();
+      AppLogger.error('Erro ao carregar sessões: $e', StackTrace.current);
+      notifyListeners();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   /// Carrega a sessão ativa
   Future<void> loadActiveSessions() async {
+    // Não notificar se já está carregando
+    if (_isLoading) return;
+
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -42,34 +75,7 @@ class SessionController extends ChangeNotifier {
     }
   }
 
-  /// Carrega todos os registros de sessão
-  Future<void> loadSessions() async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    try {
-      _allSessions = await _repository.getAllSessions();
-      AppLogger.info('Sessões carregadas: ${_allSessions.length}');
-
-      // Também atualizar sessão ativa
-      _activeSession = _allSessions.firstWhere(
-        (s) => s.endTime == null,
-        orElse: () => _activeSession ?? _createEmptySession(),
-      );
-
-      notifyListeners();
-    } catch (e) {
-      _errorMessage = e.toString();
-      AppLogger.error('Erro ao carregar sessões: $e', StackTrace.current);
-      notifyListeners();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  /// Inicia uma nova sessão (fecha a anterior)
+  /// Inicia nova sessão
   Future<bool> startNewSession({
     required List<String> alterIds,
     required int intensity,
@@ -107,7 +113,7 @@ class SessionController extends ChangeNotifier {
     }
   }
 
-  /// Finaliza a sessão ativa
+  /// Encerra a sessão ativa
   Future<bool> endActiveSession() async {
     if (_activeSession == null) return false;
 
@@ -125,6 +131,30 @@ class SessionController extends ChangeNotifier {
     } catch (e) {
       _errorMessage = e.toString();
       AppLogger.error('Erro ao encerrar sessão: $e', StackTrace.current);
+      notifyListeners();
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Deleta uma sessão
+  Future<bool> deleteSession(String sessionId) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _repository.deleteSession(sessionId);
+      _allSessions.removeWhere((s) => s.id == sessionId);
+
+      AppLogger.info('Sessão deletada com sucesso: $sessionId');
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      AppLogger.error('Erro ao deletar sessão: $e', StackTrace.current);
       notifyListeners();
       return false;
     } finally {

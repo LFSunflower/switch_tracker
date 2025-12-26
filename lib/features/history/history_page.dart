@@ -16,17 +16,20 @@ class _HistoryPageState extends State<HistoryPage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadSessions();
-    });
+    // Não carregar aqui, deixar que a HomePage carregue
   }
 
   Future<void> _loadSessions() async {
-    final controller = context.read<SessionController>();
     try {
+      final controller = context.read<SessionController>();
       await controller.loadSessions();
     } catch (e) {
       AppLogger.error('Erro ao carregar histórico: $e', StackTrace.current);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao carregar: $e')),
+        );
+      }
     }
   }
 
@@ -61,7 +64,15 @@ class _HistoryPageState extends State<HistoryPage> {
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
                     onPressed: () {
-                      DefaultTabController.of(context).animateTo(0);
+                      // Voltar para a aba de Switch
+                      if (context.mounted) {
+                        // Usar Scaffold.of para acessar o DefaultTabController
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Vá para a aba Switch para registrar'),
+                          ),
+                        );
+                      }
                     },
                     icon: const Icon(Icons.add),
                     label: const Text('Registrar Switch'),

@@ -4,11 +4,7 @@ import 'package:provider/provider.dart';
 import '../../controllers/session_controller.dart';
 import '../../controllers/version_controller.dart';
 import '../../core/utils/logger.dart';
-import '../../data/models/version.dart';
 import '../home/widgets/current_front_card.dart';
-import 'widgets/intensity_slider.dart';
-import 'widgets/trigger_selector.dart';
-import 'widgets/version_selector.dart';
 
 class SwitchRecordPage extends StatefulWidget {
   const SwitchRecordPage({super.key});
@@ -18,6 +14,253 @@ class SwitchRecordPage extends StatefulWidget {
 }
 
 class _SwitchRecordPageState extends State<SwitchRecordPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: RefreshIndicator(
+        onRefresh: () async {
+          final sessionController = context.read<SessionController>();
+          await sessionController.loadSessions();
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Card da sessão atual
+              Consumer<SessionController>(
+                builder: (context, sessionController, _) {
+                  return CurrentFrontCard(
+                    sessionController: sessionController,
+                  );
+                },
+              ),
+              const SizedBox(height: 24),
+
+              // Informações sobre o Alter Ativo
+              Consumer2<SessionController, VersionController>(
+                builder: (context, sessionController, versionController, _) {
+                  final activeSession = sessionController.activeSession;
+                  if (activeSession == null || activeSession.alters.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+
+                  // Buscar informações dos alters ativos
+                  final alterInfos = activeSession.alters
+                      .map((alterId) => versionController.getVersionById(alterId))
+                      .whereType<dynamic>()
+                      .toList();
+
+                  if (alterInfos.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Informações do Alter',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      ...alterInfos.map((alter) {
+                        return Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Nome e pronome
+                                Row(
+                                  children: [
+                                    Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        color: _parseColor(alter.color),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          alter.name[0].toUpperCase(),
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          alter.name,
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        if (alter.pronoun != null &&
+                                            alter.pronoun!.isNotEmpty)
+                                          Text(
+                                            alter.pronoun!,
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+
+                                // Descrição
+                                if (alter.description != null &&
+                                    alter.description!.isNotEmpty) ...[
+                                  const Text(
+                                    'Descrição',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(alter.description!),
+                                  const SizedBox(height: 12),
+                                ],
+
+                                // Função
+                                if (alter.function != null &&
+                                    alter.function!.isNotEmpty) ...[
+                                  const Text(
+                                    'Função',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(alter.function!),
+                                  const SizedBox(height: 12),
+                                ],
+
+                                // O que gosta
+                                if (alter.likes != null &&
+                                    alter.likes!.isNotEmpty) ...[
+                                  const Text(
+                                    'O que gosta 💚',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(alter.likes!),
+                                  const SizedBox(height: 12),
+                                ],
+
+                                // O que desgosta
+                                if (alter.dislikes != null &&
+                                    alter.dislikes!.isNotEmpty) ...[
+                                  const Text(
+                                    'O que desgosta 💔',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(alter.dislikes!),
+                                  const SizedBox(height: 12),
+                                ],
+
+                                // Instruções de Segurança
+                                if (alter.safetyInstructions != null &&
+                                    alter.safetyInstructions!.isNotEmpty) ...[
+                                  const Text(
+                                    '⚠️ Instruções de Segurança',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red.withOpacity(0.1),
+                                      border: Border.all(color: Colors.red),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      alter.safetyInstructions!,
+                                      style: const TextStyle(
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ],
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (context) => _SwitchFormDialog(),
+          );
+        },
+        tooltip: 'Novo Switch',
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  Color _parseColor(String colorString) {
+    try {
+      if (colorString.startsWith('#')) {
+        return Color(int.parse('FF${colorString.substring(1)}', radix: 16));
+      } else if (colorString.startsWith('0x')) {
+        return Color(int.parse(colorString));
+      } else {
+        return Color(int.parse('FF$colorString', radix: 16));
+      }
+    } catch (e) {
+      return Colors.purple;
+    }
+  }
+}
+
+class _SwitchFormDialog extends StatefulWidget {
+  const _SwitchFormDialog();
+
+  @override
+  State<_SwitchFormDialog> createState() => _SwitchFormDialogState();
+}
+
+class _SwitchFormDialogState extends State<_SwitchFormDialog> {
   List<String> _selectedAlterIds = [];
   int _intensity = 3;
   List<String> _selectedTriggers = [];
@@ -25,9 +268,23 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
   String _notes = '';
   bool _isSubmitting = false;
 
-  void _submitSwitch(BuildContext context) async {
+  final List<String> _availableTriggers = [
+    'Stress',
+    'Trauma',
+    'Ansiedade',
+    'Atividade Específica',
+    'Interação Social',
+    'Mudança de Ambiente',
+    'Cansaço',
+    'Ruídos Altos',
+    'Luz Intensa',
+    'Contato Físico',
+    'Conversas Difíceis',
+    'Horários Específicos',
+  ];
+
+  void _submitSwitch() async {
     final sessionController = context.read<SessionController>();
-    final versionController = context.read<VersionController>();
 
     if (_selectedAlterIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -55,15 +312,7 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Switch registrado com sucesso!')),
         );
-
-        // Resetar formulário
-        setState(() {
-          _selectedAlterIds = [];
-          _intensity = 3;
-          _selectedTriggers = [];
-          _isCoFront = false;
-          _notes = '';
-        });
+        Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
@@ -84,105 +333,65 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: () async {
-        final sessionController = context.read<SessionController>();
-        await sessionController.loadSessions();
-      },
+    return Dialog(
       child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Card da sessão atual
-            Consumer<SessionController>(
-              builder: (context, sessionController, _) {
-                return CurrentFrontCard(
-                  sessionController: sessionController,
-                );
-              },
-            ),
-            const SizedBox(height: 24),
-
-            // Formulário de novo switch
-            const Text(
-              'Registrar Novo Switch',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Seletor de Alters
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Qual alter está no controle?',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Consumer<VersionController>(
-                      builder: (context, versionController, _) {
-                        final versions = versionController.allVersions;
-                        if (versions.isEmpty) {
-                          return Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                children: [
-                                  const Icon(
-                                    Icons.person_outline,
-                                    size: 48,
-                                    color: Colors.grey,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  const Text(
-                                    'Nenhum alter disponível',
-                                    style: TextStyle(color: Colors.grey),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      DefaultTabController.of(context)
-                                          .animateTo(1);
-                                    },
-                                    child: const Text('Criar Alter'),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }
-
-                        return VersionSelector(
-                          versions: versions,
-                          selectedIds: _selectedAlterIds,
-                          onSelectionChanged: (selectedIds) {
-                            setState(
-                              () => _selectedAlterIds = selectedIds,
-                            );
-                          },
-                        );
-                      },
-                    ),
-                  ],
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Registrar Novo Switch',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            // Co-front checkbox
-            Card(
-              child: CheckboxListTile(
+              // Seletor de Alters
+              const Text(
+                'Qual alter está no controle? *',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Consumer<VersionController>(
+                builder: (context, versionController, _) {
+                  final versions = versionController.allVersions;
+                  if (versions.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Text('Nenhum alter disponível'),
+                    );
+                  }
+
+                  return Wrap(
+                    spacing: 8,
+                    children: versions
+                        .map(
+                          (version) => FilterChip(
+                            selected: _selectedAlterIds.contains(version.id),
+                            label: Text(version.name),
+                            onSelected: (isSelected) {
+                              setState(() {
+                                if (isSelected) {
+                                  _selectedAlterIds.add(version.id);
+                                } else {
+                                  _selectedAlterIds.remove(version.id);
+                                }
+                              });
+                            },
+                          ),
+                        )
+                        .toList(),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // Co-front
+              CheckboxListTile(
                 title: const Text('É um co-front?'),
                 subtitle: const Text('Mais de um alter no controle'),
                 value: _isCoFront,
@@ -190,121 +399,94 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
                   setState(() => _isCoFront = value ?? false);
                 },
               ),
-            ),
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            // Intensidade
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Intensidade do fronting',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+              // Intensidade
+              Text(
+                'Intensidade: $_intensity/5',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              Slider(
+                value: _intensity.toDouble(),
+                min: 1,
+                max: 5,
+                divisions: 4,
+                onChanged: (value) {
+                  setState(() => _intensity = value.toInt());
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // Seletor de Gatilhos
+              const Text(
+                'Gatilhos (opcional)',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                children: _availableTriggers
+                    .map(
+                      (trigger) => FilterChip(
+                        selected: _selectedTriggers.contains(trigger),
+                        label: Text(trigger),
+                        onSelected: (isSelected) {
+                          setState(() {
+                            if (isSelected) {
+                              _selectedTriggers.add(trigger);
+                            } else {
+                              _selectedTriggers.remove(trigger);
+                            }
+                          });
+                        },
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    IntensitySlider(
-                      value: _intensity,
-                      onChanged: (value) {
-                        setState(() => _intensity = value);
-                      },
-                    ),
-                  ],
+                    )
+                    .toList(),
+              ),
+              const SizedBox(height: 16),
+
+              // Notas
+              TextField(
+                maxLines: 3,
+                onChanged: (value) => _notes = value,
+                decoration: InputDecoration(
+                  labelText: 'Notas (opcional)',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  hintText: 'Adicione observações...',
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            // Gatilhos
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Gatilhos (opcional)',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+              // Botões
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancelar'),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton.icon(
+                    onPressed: _isSubmitting ? null : _submitSwitch,
+                    icon: _isSubmitting
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Icon(Icons.check),
+                    label: Text(
+                      _isSubmitting ? 'Registrando...' : 'Registrar',
                     ),
-                    const SizedBox(height: 12),
-                    TriggerSelector(
-                      selectedTriggers: _selectedTriggers,
-                      onSelectionChanged: (selectedTriggers) {
-                        setState(
-                          () => _selectedTriggers = selectedTriggers,
-                        );
-                      },
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 16),
-
-            // Notas
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Notas (opcional)',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      maxLines: 4,
-                      onChanged: (value) => _notes = value,
-                      decoration: InputDecoration(
-                        hintText:
-                            'Adicione observações sobre este switch...',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Botão de envio
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _isSubmitting ? null : () => _submitSwitch(context),
-                icon: _isSubmitting
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      )
-                    : const Icon(Icons.check),
-                label: Text(
-                  _isSubmitting ? 'Registrando...' : 'Registrar Switch',
-                  style: const TextStyle(fontSize: 16),
-                ),
-              ),
-            ),
-            const SizedBox(height: 32),
-          ],
+            ],
+          ),
         ),
       ),
     );
