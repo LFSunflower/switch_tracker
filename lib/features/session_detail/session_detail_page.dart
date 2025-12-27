@@ -5,6 +5,7 @@ import '../../controllers/session_controller.dart';
 import '../../controllers/version_controller.dart';
 import '../../core/utils/time_utils.dart';
 import '../../data/models/front_session.dart';
+import 'session_edit_page.dart';
 
 class SessionDetailPage extends StatefulWidget {
   final FrontSession session;
@@ -19,6 +20,14 @@ class SessionDetailPage extends StatefulWidget {
 }
 
 class _SessionDetailPageState extends State<SessionDetailPage> {
+  late FrontSession _session;
+
+  @override
+  void initState() {
+    super.initState();
+    _session = widget.session;
+  }
+
   @override
   Widget build(BuildContext context) {
     final versionController = context.read<VersionController>();
@@ -31,19 +40,24 @@ class _SessionDetailPageState extends State<SessionDetailPage> {
           PopupMenuButton(
             itemBuilder: (context) => [
               PopupMenuItem(
-                child: const Text('Editar'),
+                child: const Row(
+                  children: [
+                    Icon(Icons.edit, color: Colors.orange),
+                    SizedBox(width: 12),
+                    Text('Editar'),
+                  ],
+                ),
                 onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Funcionalidade de edição em breve'),
-                    ),
-                  );
+                  _navigateToEdit();
                 },
               ),
               PopupMenuItem(
-                child: const Text(
-                  'Deletar',
-                  style: TextStyle(color: Colors.red),
+                child: const Row(
+                  children: [
+                    Icon(Icons.delete, color: Colors.red),
+                    SizedBox(width: 12),
+                    Text('Deletar'),
+                  ],
                 ),
                 onTap: () {
                   _showDeleteDialog(context);
@@ -75,7 +89,7 @@ class _SessionDetailPageState extends State<SessionDetailPage> {
                     const SizedBox(height: 16),
                     _buildInfoRow(
                       'Alters',
-                      widget.session.alters
+                      _session.alters
                           .map((alterId) =>
                               versionController.getVersionById(alterId)?.name ??
                               'Desconhecido')
@@ -84,32 +98,31 @@ class _SessionDetailPageState extends State<SessionDetailPage> {
                     const SizedBox(height: 12),
                     _buildInfoRow(
                       'Tipo',
-                      widget.session.isCofront ? 'Co-front' : 'Simples',
+                      _session.isCofront ? 'Co-front' : 'Simples',
                     ),
                     const SizedBox(height: 12),
                     _buildInfoRow(
                       'Intensidade',
-                      '${widget.session.intensity}/5',
+                      '${_session.intensity}/5',
                     ),
                     const SizedBox(height: 12),
                     _buildInfoRow(
                       'Início',
-                      TimeUtils.formatDateTime(widget.session.startTime),
+                      TimeUtils.formatDateTime(_session.startTime),
                     ),
                     const SizedBox(height: 12),
-                    if (widget.session.endTime != null)
+                    if (_session.endTime != null)
                       _buildInfoRow(
                         'Fim',
-                        TimeUtils.formatDateTime(widget.session.endTime!),
+                        TimeUtils.formatDateTime(_session.endTime!),
                       ),
-                    if (widget.session.endTime != null)
-                      const SizedBox(height: 12),
-                    if (widget.session.endTime != null)
+                    if (_session.endTime != null) const SizedBox(height: 12),
+                    if (_session.endTime != null)
                       _buildInfoRow(
                         'Duração',
                         _calculateDuration(
-                          widget.session.startTime,
-                          widget.session.endTime,
+                          _session.startTime,
+                          _session.endTime,
                         ),
                       ),
                   ],
@@ -119,7 +132,7 @@ class _SessionDetailPageState extends State<SessionDetailPage> {
             const SizedBox(height: 16),
 
             // Gatilhos
-            if (widget.session.triggers.isNotEmpty) ...[
+            if (_session.triggers.isNotEmpty) ...[
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -136,7 +149,7 @@ class _SessionDetailPageState extends State<SessionDetailPage> {
                       const SizedBox(height: 12),
                       Wrap(
                         spacing: 8,
-                        children: widget.session.triggers
+                        children: _session.triggers
                             .map(
                               (trigger) => Chip(label: Text(trigger)),
                             )
@@ -150,7 +163,7 @@ class _SessionDetailPageState extends State<SessionDetailPage> {
             ],
 
             // Notas
-            if (widget.session.notes != null && widget.session.notes!.isNotEmpty)
+            if (_session.notes != null && _session.notes!.isNotEmpty)
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -165,7 +178,7 @@ class _SessionDetailPageState extends State<SessionDetailPage> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      Text(widget.session.notes!),
+                      Text(_session.notes!),
                     ],
                   ),
                 ),
@@ -181,7 +194,7 @@ class _SessionDetailPageState extends State<SessionDetailPage> {
               ),
             ),
             const SizedBox(height: 12),
-            ...widget.session.alters.map((alterId) {
+            ...(_session.alters.map((alterId) {
               final alter = versionController.getVersionById(alterId);
               if (alter == null) return const SizedBox.shrink();
 
@@ -280,11 +293,26 @@ class _SessionDetailPageState extends State<SessionDetailPage> {
                   ),
                 ),
               );
-            }).toList(),
+            }).toList()),
           ],
         ),
       ),
     );
+  }
+
+  void _navigateToEdit() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SessionEditPage(session: _session),
+      ),
+    ).then((result) {
+      if (result == true) {
+        setState(() {
+          // Recarregar dados se necessário
+        });
+      }
+    });
   }
 
   void _showDeleteDialog(BuildContext context) {
@@ -301,7 +329,7 @@ class _SessionDetailPageState extends State<SessionDetailPage> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              context.read<SessionController>().deleteSession(widget.session.id);
+              context.read<SessionController>().deleteSession(_session.id);
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Sessão deletada com sucesso')),
