@@ -42,9 +42,9 @@ class _SessionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final versionController = context.read<VersionController>();
-    final alterNames = session.alters
-        .map((alterId) => versionController.getVersionById(alterId)?.name ?? 'Desconhecido')
-        .join(', ');
+    final alterNames = session.alterNames.isNotEmpty
+        ? session.alterNames.join(', ')
+        : session.alters.map((alterId) => 'ID: $alterId').join(', ');
 
     final duration = _calculateDuration(session.startTime, session.endTime);
 

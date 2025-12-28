@@ -285,6 +285,7 @@ class _SwitchFormDialogState extends State<_SwitchFormDialog> {
 
   void _submitSwitch() async {
     final sessionController = context.read<SessionController>();
+    final versionController = context.read<VersionController>();
 
     if (_selectedAlterIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -300,8 +301,14 @@ class _SwitchFormDialogState extends State<_SwitchFormDialog> {
         'Iniciando switch com alters: $_selectedAlterIds, intensity: $_intensity',
       );
 
+      // Obter nomes dos alters selecionados
+      final alterNames = _selectedAlterIds
+          .map((alterId) => versionController.getVersionById(alterId)?.name ?? 'Desconhecido')
+          .toList();
+
       await sessionController.startNewSession(
         alterIds: _selectedAlterIds,
+        alterNames: alterNames,
         intensity: _intensity,
         triggers: _selectedTriggers,
         notes: _notes.isEmpty ? null : _notes,

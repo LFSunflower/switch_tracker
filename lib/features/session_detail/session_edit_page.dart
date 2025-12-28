@@ -24,6 +24,8 @@ class _SessionEditPageState extends State<SessionEditPage> {
   late List<String> _selectedTriggers;
   late bool _isCoFront;
   late String _notes;
+  late DateTime _startTime;
+  late DateTime? _endTime;
   bool _isSubmitting = false;
 
   final List<String> _availableTriggers = [
@@ -49,6 +51,8 @@ class _SessionEditPageState extends State<SessionEditPage> {
     _selectedTriggers = List.from(widget.session.triggers);
     _isCoFront = widget.session.isCofront;
     _notes = widget.session.notes ?? '';
+    _startTime = widget.session.startTime;
+    _endTime = widget.session.endTime;
   }
 
   void _submitChanges() async {
@@ -62,18 +66,44 @@ class _SessionEditPageState extends State<SessionEditPage> {
     setState(() => _isSubmitting = true);
 
     try {
+      final versionController = context.read<VersionController>();
+      final sessionController = context.read<SessionController>();
+
+      // Obter nomes dos alters selecionados
+      final alterNames = _selectedAlterIds
+          .map((alterId) => versionController.getVersionById(alterId)?.name ?? 'Desconhecido')
+          .toList();
+
       AppLogger.info(
         'Atualizando sessão: ${widget.session.id}',
       );
 
-      // Atualizar sessão no banco de dados
-      // TODO: Implementar método updateSession no SessionRepository
-      
+      final success = await sessionController.updateSession(
+        sessionId: widget.session.id,
+        alterIds: _selectedAlterIds,
+        alterNames: alterNames,
+        intensity: _intensity,
+        triggers: _selectedTriggers,
+        notes: _notes.isEmpty ? null : _notes,
+        isCofront: _isCoFront,
+        startTime: _startTime,
+        endTime: _endTime,
+      );
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Sessão atualizada com sucesso!')),
-        );
-        Navigator.pop(context, true);
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Sessão atualizada com sucesso!')),
+          );
+          Navigator.pop(context, true);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Erro: ${sessionController.errorMessage}'),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -88,6 +118,62 @@ class _SessionEditPageState extends State<SessionEditPage> {
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
+      }
+    }
+  }
+
+  Future<void> _selectStartTime() async {
+    final selectedDate = await showDatePicker(
+      context: context,
+      initialDate: _startTime,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+    );
+
+    if (selectedDate != null && mounted) {
+      final selectedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.fromDateTime(_startTime),
+      );
+
+      if (selectedTime != null) {
+        setState(() {
+          _startTime = DateTime(
+            selectedDate.year,
+            selectedDate.month,
+            selectedDate.day,
+            selectedTime.hour,
+            selectedTime.minute,
+          );
+        });
+      }
+    }
+  }
+
+  Future<void> _selectEndTime() async {
+    final selectedDate = await showDatePicker(
+      context: context,
+      initialDate: _endTime ?? DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+    );
+
+    if (selectedDate != null && mounted) {
+      final selectedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.fromDateTime(_endTime ?? DateTime.now()),
+      );
+
+      if (selectedTime != null) {
+        setState(() {
+          _endTime = DateTime(
+            selectedDate.year,
+            selectedDate.month,
+            selectedDate.day,
+            selectedTime.hour,
+            selectedTime.minute,
+          );
+        });
       }
     }
   }
@@ -174,6 +260,42 @@ class _SessionEditPageState extends State<SessionEditPage> {
             ),
             const SizedBox(height: 24),
 
+            // Horário de Início
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.access_time),
+                title: const Text('Hora de Início'),
+                subtitle: Text(
+                  '${_startTime.day}/${_startTime.month}/${_startTime.year} ${_startTime.hour.toString().padLeft(2, '0')}:${_startTime.minute.toString().padLeft(2, '0')}',
+                ),
+                onTap: _selectStartTime,
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Horário de Fim
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.access_time),
+                title: const Text('Hora de Fim'),
+                subtitle: _endTime != null
+                    ? Text(
+                        '${_endTime!.day}/${_endTime!.month}/${_endTime!.year} ${_endTime!.hour.toString().padLeft(2, '0')}:${_endTime!.minute.toString().padLeft(2, '0')}',
+                      )
+                    : const Text('Não definido'),
+                trailing: _endTime != null
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          setState(() => _endTime = null);
+                        },
+                      )
+                    : null,
+                onTap: _selectEndTime,
+              ),
+            ),
+            const SizedBox(height: 24),
+
             // Seletor de Gatilhos
             const Text(
               'Gatilhos (opcional)',
@@ -245,6 +367,7 @@ class _SessionEditPageState extends State<SessionEditPage> {
                 ),
               ],
             ),
+            const SizedBox(height: 24),
           ],
         ),
       ),

@@ -7,33 +7,6 @@ class SessionRepository {
   final SupabaseClient _client = Supabase.instance.client;
   static const String _tableName = 'front_sessions';
 
-  /// Buscar sessão ativa (end_time == null)
-  Future<FrontSession?> getActiveSession() async {
-    try {
-      final currentUser = _client.auth.currentUser;
-      if (currentUser == null) {
-        throw Exception('Usuário não autenticado');
-      }
-
-      final response = await _client
-          .from(_tableName)
-          .select()
-          .eq('user_id', currentUser.id)
-          .isFilter('end_time', null)
-          .order('start_time', ascending: false)
-          .maybeSingle();
-
-      if (response == null) return null;
-      return FrontSession.fromMap(response);
-    } on PostgrestException catch (e) {
-      AppLogger.error('Erro PostgreSQL ao buscar sessão: ${e.message}');
-      throw Exception('Erro ao buscar sessão: ${e.message}');
-    } catch (e) {
-      AppLogger.error('Erro desconhecido ao buscar sessão: $e', StackTrace.current);
-      throw Exception('Erro desconhecido: $e');
-    }
-  }
-
   /// Buscar todas as sessões do usuário
   Future<List<FrontSession>> getAllSessions() async {
     try {
@@ -48,6 +21,8 @@ class SessionRepository {
           .eq('user_id', currentUser.id)
           .order('start_time', ascending: false);
 
+      AppLogger.debug('Resposta do banco (getAllSessions): $response');
+
       return (response as List<dynamic>)
           .map((session) =>
               FrontSession.fromMap(session as Map<String, dynamic>))
@@ -61,13 +36,42 @@ class SessionRepository {
     }
   }
 
-  /// Iniciar nova sessão
-  Future<FrontSession> startSession({
+  /// Buscar sessão ativa
+  Future<FrontSession?> getActiveSession() async {
+    try {
+      final currentUser = _client.auth.currentUser;
+      if (currentUser == null) {
+        throw Exception('Usuário não autenticado');
+      }
+
+      final response = await _client
+          .from(_tableName)
+          .select()
+          .eq('user_id', currentUser.id)
+          .('end_time', null)
+          .maybeSingle();
+
+      AppLogger.debug('Resposta do banco (getActiveSession): $response');
+
+      if (response == null) return null;
+      return FrontSession.fromMap(response as Map<String, dynamic>);
+    } on PostgrestException catch (e) {
+      AppLogger.error('Erro PostgreSQL ao buscar sessão ativa: ${e.message}');
+      throw Exception('Erro ao buscar sessão ativa: ${e.message}');
+    } catch (e) {
+      AppLogger.error('Erro desconhecido ao buscar sessão ativa: $e', StackTrace.current);
+      throw Exception('Erro desconhecido: $e');
+    }
+  }
+
+  /// Criar nova sessão
+  Future<FrontSession> createSession({
     required List<String> alterIds,
+    required List<String> alterNames,
     required int intensity,
-    List<String> triggers = const [],
+    required List<String> triggers,
     String? notes,
-    bool isCoFront = false,
+    required bool isCofront,
   }) async {
     try {
       final currentUser = _client.auth.currentUser;
@@ -75,18 +79,21 @@ class SessionRepository {
         throw Exception('Usuário não autenticado');
       }
 
-      final createData = {
+      final createData = <String, dynamic>{
         'user_id': currentUser.id,
         'alters': alterIds,
+        'alter_names': alterNames,
         'intensity': intensity,
         'triggers': triggers,
-        'notes': notes,
-        'is_cofront': isCoFront,
+        'is_cofront': isCofront,
         'start_time': DateTime.now().toIso8601String(),
-        'end_time': null,
       };
 
-      AppLogger.info('Iniciando sessão com dados: $createData');
+      if (notes != null && notes.isNotEmpty) {
+        createData['notes'] = notes;
+      }
+
+      AppLogger.info('Criando sessão com dados: $createData');
 
       final response = await _client
           .from(_tableName)
@@ -94,9 +101,11 @@ class SessionRepository {
           .select()
           .single();
 
-      AppLogger.debug('Resposta do banco (startSession): $response');
+      AppLogger.debug('Resposta do banco (createSession): $response');
 
-      return FrontSession.fromMap(response);
+      final newSession = FrontSession.fromMap(response as Map<String, dynamic>);
+      AppLogger.info('Sessão criada com sucesso');
+      return newSession;
     } on PostgrestException catch (e) {
       AppLogger.error('Erro PostgreSQL ao criar sessão: ${e.message}');
       throw Exception('Erro ao criar sessão: ${e.message}');
@@ -106,92 +115,63 @@ class SessionRepository {
     }
   }
 
-  /// Encerrar sessão
-  Future<void> endSession(String sessionId) async {
+  /// Atualizar sessão
+  Future<FrontSession> updateSession({
+    required String sessionId,
+    List<String>? alterIds,
+    List<String>? alterNames,
+    int? intensity,
+    List<String>? triggers,
+    String? notes,
+    bool? isCofront,
+    DateTime? startTime,
+    DateTime? endTime,
+  }) async {
     try {
-      final currentUser = _client.auth.currentUser;
-      if (currentUser == null) {
-        throw Exception('Usuário não autenticado');
+      final updateData = <String, dynamic>{};
+
+      if (alterIds != null) updateData['alters'] = alterIds;
+      if (alterNames != null) updateData['alter_names'] = alterNames;
+      if (intensity != null) updateData['intensity'] = intensity;
+      if (triggers != null) updateData['triggers'] = triggers;
+      if (notes != null) updateData['notes'] = notes;
+      if (isCofront != null) updateData['is_cofront'] = isCofront;
+      if (startTime != null) updateData['start_time'] = startTime.toIso8601String();
+      if (endTime != null) updateData['end_time'] = endTime.toIso8601String();
+
+      if (updateData.isEmpty) {
+        final currentSession = await _getSessionById(sessionId);
+        if (currentSession == null) {
+          throw Exception('Sessão não encontrada');
+        }
+        return currentSession;
       }
 
-      AppLogger.info('Encerrando sessão: $sessionId');
+      AppLogger.info('Atualizando sessão $sessionId com dados: $updateData');
 
-      await _client
+      final response = await _client
           .from(_tableName)
-          .update({
-            'end_time': DateTime.now().toIso8601String(),
-          })
+          .update(updateData)
           .eq('id', sessionId)
-          .eq('user_id', currentUser.id);
+          .select()
+          .single();
 
-      AppLogger.info('Sessão encerrada com sucesso: $sessionId');
+      AppLogger.debug('Resposta do banco (updateSession): $response');
+
+      final updatedSession =
+          FrontSession.fromMap(response as Map<String, dynamic>);
+      AppLogger.info('Sessão atualizada com sucesso');
+      return updatedSession;
     } on PostgrestException catch (e) {
-      AppLogger.error('Erro PostgreSQL ao encerrar sessão: ${e.message}');
-      throw Exception('Erro ao encerrar sessão: ${e.message}');
+      AppLogger.error('Erro PostgreSQL ao atualizar sessão: ${e.message}');
+      throw Exception('Erro ao atualizar sessão: ${e.message}');
     } catch (e) {
-      AppLogger.error('Erro desconhecido ao encerrar sessão: $e', StackTrace.current);
+      AppLogger.error('Erro desconhecido ao atualizar sessão: $e', StackTrace.current);
       throw Exception('Erro desconhecido: $e');
     }
   }
 
-  /// Atualizar notas da sessão
-  Future<void> updateSessionNotes(String sessionId, String notes) async {
-    try {
-      await _client
-          .from(_tableName)
-          .update({'notes': notes})
-          .eq('id', sessionId);
-
-      AppLogger.info('Notas da sessão atualizadas: $sessionId');
-    } on PostgrestException catch (e) {
-      AppLogger.error('Erro PostgreSQL ao atualizar notas: ${e.message}');
-      throw Exception('Erro ao atualizar notas: ${e.message}');
-    } catch (e) {
-      AppLogger.error('Erro desconhecido ao atualizar notas: $e', StackTrace.current);
-      throw Exception('Erro desconhecido: $e');
-    }
-  }
-
-  /// Atualizar gatilhos da sessão
-  Future<void> updateSessionTriggers(
-    String sessionId,
-    List<String> triggers,
-  ) async {
-    try {
-      await _client
-          .from(_tableName)
-          .update({'triggers': triggers})
-          .eq('id', sessionId);
-
-      AppLogger.info('Gatilhos da sessão atualizados: $sessionId');
-    } on PostgrestException catch (e) {
-      AppLogger.error('Erro PostgreSQL ao atualizar gatilhos: ${e.message}');
-      throw Exception('Erro ao atualizar gatilhos: ${e.message}');
-    } catch (e) {
-      AppLogger.error('Erro desconhecido ao atualizar gatilhos: $e', StackTrace.current);
-      throw Exception('Erro desconhecido: $e');
-    }
-  }
-
-  /// Atualizar intensidade da sessão
-  Future<void> updateSessionIntensity(String sessionId, int intensity) async {
-    try {
-      await _client
-          .from(_tableName)
-          .update({'intensity': intensity})
-          .eq('id', sessionId);
-
-      AppLogger.info('Intensidade da sessão atualizada: $sessionId');
-    } on PostgrestException catch (e) {
-      AppLogger.error('Erro PostgreSQL ao atualizar intensidade: ${e.message}');
-      throw Exception('Erro ao atualizar intensidade: ${e.message}');
-    } catch (e) {
-      AppLogger.error('Erro desconhecido ao atualizar intensidade: $e', StackTrace.current);
-      throw Exception('Erro desconhecido: $e');
-    }
-  }
-
-  /// Deletar uma sessão
+  /// Deletar sessão
   Future<void> deleteSession(String sessionId) async {
     try {
       AppLogger.info('Deletando sessão: $sessionId');
@@ -205,6 +185,23 @@ class SessionRepository {
     } catch (e) {
       AppLogger.error('Erro desconhecido ao deletar sessão: $e', StackTrace.current);
       throw Exception('Erro desconhecido: $e');
+    }
+  }
+
+  /// Buscar sessão por ID (privado)
+  Future<FrontSession?> _getSessionById(String sessionId) async {
+    try {
+      final response = await _client
+          .from(_tableName)
+          .select()
+          .eq('id', sessionId)
+          .maybeSingle();
+
+      if (response == null) return null;
+      return FrontSession.fromMap(response as Map<String, dynamic>);
+    } catch (e) {
+      AppLogger.error('Erro ao buscar sessão por ID: $e', StackTrace.current);
+      return null;
     }
   }
 }
