@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 
+// Widget sem estado para controlar o slider de intensidade
 class IntensitySlider extends StatelessWidget {
+  // Valor atual da intensidade (1-5)
   final int value;
+  // Callback para quando o valor do slider mudar
   final Function(int) onChanged;
 
+  // Construtor com parâmetros obrigatórios
   const IntensitySlider({
     super.key,
     required this.value,
     required this.onChanged,
   });
 
+  // Método que retorna o texto descritivo baseado no nível de intensidade
   String _getIntensityLabel(int intensity) {
     switch (intensity) {
       case 1:
@@ -27,6 +32,7 @@ class IntensitySlider extends StatelessWidget {
     }
   }
 
+  // Método que retorna a cor baseada no nível de intensidade
   Color _getIntensityColor(int intensity) {
     switch (intensity) {
       case 1:
@@ -44,10 +50,13 @@ class IntensitySlider extends StatelessWidget {
     }
   }
 
+  // Constrói a interface do widget
   @override
   Widget build(BuildContext context) {
+    // Coluna que organiza o slider e o container de informações verticalmente
     return Column(
       children: [
+        // Slider deslizante com valores de 1 a 5
         Slider(
           value: value.toDouble(),
           min: 1,
@@ -55,8 +64,10 @@ class IntensitySlider extends StatelessWidget {
           divisions: 4,
           onChanged: (newValue) => onChanged(newValue.toInt()),
         ),
+        // Container que exibe o nível e label da intensidade com estilo colorido
         Container(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          // Decoração com cor de fundo, borda e cantos arredondados
           decoration: BoxDecoration(
             color: _getIntensityColor(value).withOpacity(0.2),
             borderRadius: BorderRadius.circular(8),
@@ -65,9 +76,11 @@ class IntensitySlider extends StatelessWidget {
               width: 2,
             ),
           ),
+          // Linha que organiza o texto do nível e label horizontalmente
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
+              // Texto que exibe o número do nível atual
               Text(
                 'Nível: $value',
                 style: TextStyle(
@@ -76,6 +89,7 @@ class IntensitySlider extends StatelessWidget {
                   color: _getIntensityColor(value),
                 ),
               ),
+              // Texto que exibe a descrição da intensidade
               Text(
                 _getIntensityLabel(value),
                 style: TextStyle(

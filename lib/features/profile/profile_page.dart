@@ -1,25 +1,42 @@
 import 'package:flutter/material.dart';
+// Importa o pacote provider para gerenciamento de estado
 import 'package:provider/provider.dart';
 
+// Importa o controlador de usuário
 import '../../controllers/user_controller.dart';
+// Importa o utilitário de logging
 import '../../core/utils/logger.dart';
 
+// Define a classe ProfilePage como um StatelessWidget
 class ProfilePage extends StatelessWidget {
+  // Construtor da classe com chave opcional
   const ProfilePage({super.key});
 
+  // Sobrescreve o método build para construir a interface
   @override
   Widget build(BuildContext context) {
+    // Retorna um Scaffold como estrutura principal da página
     return Scaffold(
+      // Define a barra de aplicativo
       appBar: AppBar(
+        // Define o título da barra de aplicativo
         title: const Text('Meu Perfil'),
+        // Centraliza o título
         centerTitle: true,
       ),
+      // Define o corpo com scroll vertical
       body: SingleChildScrollView(
+        // Define o espaçamento interno como 16
         padding: const EdgeInsets.all(16),
+        // Define uma coluna como filho do scroll
         child: Column(
+          // Alinha os filhos ao início horizontal
           crossAxisAlignment: CrossAxisAlignment.start,
+          // Define a lista de widgets filhos
           children: [
+            // Comentário indicando a seção de avatar e nome
             // Avatar e Nome
+            // Define um Center como container para centralizar o avatar
             Center(
               child: Column(
                 children: [
