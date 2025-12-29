@@ -52,6 +52,7 @@ class HistoryList extends StatelessWidget {
 
     // Constrói uma lista deslizável com os cartões de sessão
     return ListView.builder(
+      padding: const EdgeInsets.all(16),
       // Define a quantidade de itens na lista
       itemCount: sessions.length,
       // Constrói cada item da lista

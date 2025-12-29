@@ -54,11 +54,6 @@ class _HistoryPageState extends State<HistoryPage> {
   Widget build(BuildContext context) {
     // Scaffold é a estrutura base da página
     return Scaffold(
-      // Define a barra superior com título
-      appBar: AppBar(
-        title: const Text('Histórico de Switches'),
-        centerTitle: true,
-      ),
       // Consome o SessionController do Provider para reatividade
       body: Consumer<SessionController>(
         // Builder que reconstrói quando o controlador muda

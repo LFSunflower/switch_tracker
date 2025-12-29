@@ -20,7 +20,10 @@ create table if not exists public.alters (
   avatar_url text,
   is_active boolean not null default true,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  likes text,
+  dislikes text,
+  safety_instructions text
 );
 
 create table if not exists public.triggers (

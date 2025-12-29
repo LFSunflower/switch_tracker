@@ -1,42 +1,25 @@
 import 'package:flutter/material.dart';
-// Importa o pacote provider para gerenciamento de estado
 import 'package:provider/provider.dart';
 
-// Importa o controlador de usuário
 import '../../controllers/user_controller.dart';
-// Importa o utilitário de logging
 import '../../core/utils/logger.dart';
 
-// Define a classe ProfilePage como um StatelessWidget
 class ProfilePage extends StatelessWidget {
-  // Construtor da classe com chave opcional
   const ProfilePage({super.key});
 
-  // Sobrescreve o método build para construir a interface
   @override
   Widget build(BuildContext context) {
-    // Retorna um Scaffold como estrutura principal da página
     return Scaffold(
-      // Define a barra de aplicativo
       appBar: AppBar(
-        // Define o título da barra de aplicativo
         title: const Text('Meu Perfil'),
-        // Centraliza o título
         centerTitle: true,
       ),
-      // Define o corpo com scroll vertical
       body: SingleChildScrollView(
-        // Define o espaçamento interno como 16
         padding: const EdgeInsets.all(16),
-        // Define uma coluna como filho do scroll
         child: Column(
-          // Alinha os filhos ao início horizontal
           crossAxisAlignment: CrossAxisAlignment.start,
-          // Define a lista de widgets filhos
           children: [
-            // Comentário indicando a seção de avatar e nome
             // Avatar e Nome
-            // Define um Center como container para centralizar o avatar
             Center(
               child: Column(
                 children: [
@@ -56,11 +39,13 @@ class ProfilePage extends StatelessWidget {
                   const SizedBox(height: 16),
                   Consumer<UserController>(
                     builder: (context, userController, _) {
-                      final user = userController.currentUser;
+                      final profile = userController.currentUser;
+                      final fullName = profile?['full_name'] as String? ?? 'Usuário';
+                      final id = profile?['id'] as String? ?? '';
                       return Column(
                         children: [
                           Text(
-                            user?.email ?? 'Usuário',
+                            fullName,
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -68,7 +53,7 @@ class ProfilePage extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'ID: ${user?.id.substring(0, 8)}...',
+                            'ID: ${id.isNotEmpty ? id.substring(0, 8) : ''}...',
                             style: const TextStyle(
                               fontSize: 12,
                               color: Colors.grey,
@@ -93,7 +78,7 @@ class ProfilePage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Email
+            // Nome Completo
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -101,7 +86,7 @@ class ProfilePage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Email',
+                      'Nome',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
@@ -111,8 +96,9 @@ class ProfilePage extends StatelessWidget {
                     const SizedBox(height: 8),
                     Consumer<UserController>(
                       builder: (context, userController, _) {
+                        final fullName = userController.currentUser?['full_name'] as String? ?? 'Não informado';
                         return Text(
-                          userController.currentUser?.email ?? 'Não informado',
+                          fullName,
                           style: const TextStyle(fontSize: 14),
                         );
                       },
@@ -141,7 +127,7 @@ class ProfilePage extends StatelessWidget {
                     const SizedBox(height: 8),
                     Consumer<UserController>(
                       builder: (context, userController, _) {
-                        final createdAt = userController.currentUser?.createdAt;
+                        final createdAt = userController.currentUser?['created_at'];
                         final formattedDate = _formatCreatedDate(createdAt);
                         return Text(
                           formattedDate,
@@ -172,7 +158,7 @@ class ProfilePage extends StatelessWidget {
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Funcionalidade em desenvolvimento'),
+                      content: Text('Vá para Configurações para alterar a senha'),
                     ),
                   );
                 },
@@ -275,10 +261,9 @@ class ProfilePage extends StatelessWidget {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              // TODO: Implementar deleção de conta
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Funcionalidade em desenvolvimento'),
+                  content: Text('Vá para Configurações para deletar a conta'),
                 ),
               );
             },
