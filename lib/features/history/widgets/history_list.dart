@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../controllers/session_controller.dart';
 import '../../../controllers/version_controller.dart';
-import '../../../core/utils/time_utils.dart';
-import '../../session_detail/session_detail_page.dart';
 import '../../../data/models/front_session.dart';
+import '../../session_detail/session_detail_page.dart';
 
 class HistoryList extends StatelessWidget {
   final List<FrontSession> sessions;
@@ -18,33 +16,48 @@ class HistoryList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (sessions.isEmpty) {
-      return const Center(
-        child: Text('Nenhum registro de sessão'),
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.history,
+              size: 64,
+              color: Colors.grey[400],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Nenhum histórico de sessões',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey[600],
+              ),
+            ),
+          ],
+        ),
       );
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
       itemCount: sessions.length,
       itemBuilder: (context, index) {
-        final session = sessions[index];
-        return _SessionCard(session: session);
+        return _HistoryCard(session: sessions[index]);
       },
     );
   }
 }
 
-class _SessionCard extends StatelessWidget {
+class _HistoryCard extends StatelessWidget {
   final FrontSession session;
 
-  const _SessionCard({required this.session});
+  const _HistoryCard({required this.session});
 
   @override
   Widget build(BuildContext context) {
     final versionController = context.read<VersionController>();
-    final alterNames = session.alterNames.isNotEmpty
-        ? session.alterNames.join(', ')
-        : session.alters.map((alterId) => 'ID: $alterId').join(', ');
+    final alterNames = session.alters
+        .map((alterId) => versionController.getVersionById(alterId)?.name ?? 'Desconhecido')
+        .join(', ');
 
     final duration = _calculateDuration(session.startTime, session.endTime);
 
@@ -72,61 +85,11 @@ class _SessionCard extends StatelessWidget {
           alterNames,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 4),
-            Text(
-              'Início: ${TimeUtils.formatDateTime(session.startTime)}',
-              style: const TextStyle(fontSize: 12),
-            ),
-            if (session.endTime != null)
-              Text(
-                'Duração: $duration',
-                style: const TextStyle(fontSize: 12),
-              ),
-            if (session.isCofront)
-              const Text(
-                'Co-front',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.blue,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-          ],
+        subtitle: Text(
+          '${session.isCofront ? 'Co-front' : 'Simples'} • $duration',
+          style: const TextStyle(fontSize: 12),
         ),
-        trailing: PopupMenuButton(
-          itemBuilder: (context) => [
-            PopupMenuItem(
-              child: const Text('Detalhes'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        SessionDetailPage(session: session),
-                  ),
-                );
-              },
-            ),
-            PopupMenuItem(
-              child: const Text('Editar'),
-              onTap: () {
-                _showEditDialog(context);
-              },
-            ),
-            PopupMenuItem(
-              child: const Text(
-                'Deletar',
-                style: TextStyle(color: Colors.red),
-              ),
-              onTap: () {
-                _showDeleteDialog(context);
-              },
-            ),
-          ],
-        ),
+        trailing: const Icon(Icons.chevron_right),
         onTap: () {
           Navigator.push(
             context,
@@ -135,48 +98,6 @@ class _SessionCard extends StatelessWidget {
             ),
           );
         },
-      ),
-    );
-  }
-
-  void _showEditDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Editar Sessão'),
-        content: const Text('Funcionalidade de edição em breve'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Ok'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showDeleteDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Deletar Sessão'),
-        content: const Text('Tem certeza que deseja deletar este registro?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              context.read<SessionController>().deleteSession(session.id);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Sessão deletada com sucesso')),
-              );
-            },
-            child: const Text('Deletar', style: TextStyle(color: Colors.red)),
-          ),
-        ],
       ),
     );
   }
@@ -199,9 +120,9 @@ class _SessionCard extends StatelessWidget {
       case 2:
         return Colors.lightGreen;
       case 3:
-        return Colors.yellow;
-      case 4:
         return Colors.orange;
+      case 4:
+        return Colors.deepOrange;
       case 5:
         return Colors.red;
       default:

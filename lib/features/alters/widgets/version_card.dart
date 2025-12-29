@@ -71,6 +71,7 @@ class VersionCard extends StatelessWidget {
         trailing: PopupMenuButton(
           itemBuilder: (context) => [
             PopupMenuItem(
+              onTap: onEdit,
               child: const Row(
                 children: [
                   Icon(Icons.edit, size: 20),
@@ -78,9 +79,9 @@ class VersionCard extends StatelessWidget {
                   Text('Editar'),
                 ],
               ),
-              onTap: onEdit,
             ),
             PopupMenuItem(
+              onTap: onDelete,
               child: const Row(
                 children: [
                   Icon(Icons.delete, size: 20, color: Colors.red),
@@ -88,7 +89,6 @@ class VersionCard extends StatelessWidget {
                   Text('Deletar', style: TextStyle(color: Colors.red)),
                 ],
               ),
-              onTap: onDelete,
             ),
           ],
         ),

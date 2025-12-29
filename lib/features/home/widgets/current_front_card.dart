@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../controllers/session_controller.dart';
+import '../../../controllers/version_controller.dart';
 import '../../../core/utils/time_utils.dart';
 
 class CurrentFrontCard extends StatelessWidget {
@@ -38,8 +40,12 @@ class CurrentFrontCard extends StatelessWidget {
       );
     }
 
-    // Usar alterNames ao invés de alters
-    final alterNamesText = activeSession.alterNames.join(', ');
+    // Obter nomes dos alters pelos IDs
+    final versionController = context.read<VersionController>();
+    final alterNames = activeSession.alters
+        .map((alterId) => versionController.getVersionById(alterId)?.name ?? 'Desconhecido')
+        .join(', ');
+
     final duration = _calculateDuration(activeSession.startTime, activeSession.endTime);
 
     return Card(
@@ -59,7 +65,7 @@ class CurrentFrontCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              alterNamesText,
+              alterNames,
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -121,28 +127,15 @@ class CurrentFrontCard extends StatelessWidget {
               ),
             ],
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      // TODO: Implementar edição rápida
-                    },
-                    icon: const Icon(Icons.edit, size: 18),
-                    label: const Text('Editar'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      _showEndSessionDialog(context);
-                    },
-                    icon: const Icon(Icons.check, size: 18),
-                    label: const Text('Finalizar'),
-                  ),
-                ),
-              ],
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  _showEndSessionDialog(context, sessionController);
+                },
+                icon: const Icon(Icons.check, size: 18),
+                label: const Text('Finalizar Sessão'),
+              ),
             ),
           ],
         ),
@@ -150,7 +143,10 @@ class CurrentFrontCard extends StatelessWidget {
     );
   }
 
-  void _showEndSessionDialog(BuildContext context) {
+  void _showEndSessionDialog(
+    BuildContext context,
+    SessionController sessionController,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

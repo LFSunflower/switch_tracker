@@ -48,7 +48,7 @@ class SessionRepository {
           .from(_tableName)
           .select()
           .eq('user_id', currentUser.id)
-          .('end_time', null)
+          .filter('end_time', 'is', null)
           .maybeSingle();
 
       AppLogger.debug('Resposta do banco (getActiveSession): $response');
@@ -67,7 +67,6 @@ class SessionRepository {
   /// Criar nova sessão
   Future<FrontSession> createSession({
     required List<String> alterIds,
-    required List<String> alterNames,
     required int intensity,
     required List<String> triggers,
     String? notes,
@@ -82,7 +81,6 @@ class SessionRepository {
       final createData = <String, dynamic>{
         'user_id': currentUser.id,
         'alters': alterIds,
-        'alter_names': alterNames,
         'intensity': intensity,
         'triggers': triggers,
         'is_cofront': isCofront,
@@ -119,7 +117,6 @@ class SessionRepository {
   Future<FrontSession> updateSession({
     required String sessionId,
     List<String>? alterIds,
-    List<String>? alterNames,
     int? intensity,
     List<String>? triggers,
     String? notes,
@@ -131,7 +128,6 @@ class SessionRepository {
       final updateData = <String, dynamic>{};
 
       if (alterIds != null) updateData['alters'] = alterIds;
-      if (alterNames != null) updateData['alter_names'] = alterNames;
       if (intensity != null) updateData['intensity'] = intensity;
       if (triggers != null) updateData['triggers'] = triggers;
       if (notes != null) updateData['notes'] = notes;

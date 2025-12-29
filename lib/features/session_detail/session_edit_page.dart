@@ -66,13 +66,7 @@ class _SessionEditPageState extends State<SessionEditPage> {
     setState(() => _isSubmitting = true);
 
     try {
-      final versionController = context.read<VersionController>();
       final sessionController = context.read<SessionController>();
-
-      // Obter nomes dos alters selecionados
-      final alterNames = _selectedAlterIds
-          .map((alterId) => versionController.getVersionById(alterId)?.name ?? 'Desconhecido')
-          .toList();
 
       AppLogger.info(
         'Atualizando sessão: ${widget.session.id}',
@@ -81,7 +75,6 @@ class _SessionEditPageState extends State<SessionEditPage> {
       final success = await sessionController.updateSession(
         sessionId: widget.session.id,
         alterIds: _selectedAlterIds,
-        alterNames: alterNames,
         intensity: _intensity,
         triggers: _selectedTriggers,
         notes: _notes.isEmpty ? null : _notes,

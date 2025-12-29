@@ -137,6 +137,7 @@ class _HomePageState extends State<HomePage> {
               const PopupMenuDivider(),
               PopupMenuItem<String>(
                 value: 'logout',
+                onTap: _showLogoutDialog,
                 child: const Row(
                   children: [
                     Icon(Icons.logout, color: Colors.red),
@@ -144,7 +145,6 @@ class _HomePageState extends State<HomePage> {
                     Text('Sair', style: TextStyle(color: Colors.red)),
                   ],
                 ),
-                onTap: _showLogoutDialog,
               ),
             ],
           ),

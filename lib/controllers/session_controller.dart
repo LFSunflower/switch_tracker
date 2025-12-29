@@ -43,7 +43,6 @@ class SessionController extends ChangeNotifier {
   /// Inicia uma nova sessão
   Future<void> startNewSession({
     required List<String> alterIds,
-    required List<String> alterNames,
     required int intensity,
     List<String> triggers = const [],
     String? notes,
@@ -56,7 +55,6 @@ class SessionController extends ChangeNotifier {
     try {
       final newSession = await _repository.createSession(
         alterIds: alterIds,
-        alterNames: alterNames,
         intensity: intensity,
         triggers: triggers,
         notes: notes,
@@ -82,7 +80,6 @@ class SessionController extends ChangeNotifier {
   Future<bool> updateSession({
     required String sessionId,
     List<String>? alterIds,
-    List<String>? alterNames,
     int? intensity,
     List<String>? triggers,
     String? notes,
@@ -98,7 +95,6 @@ class SessionController extends ChangeNotifier {
       final updatedSession = await _repository.updateSession(
         sessionId: sessionId,
         alterIds: alterIds,
-        alterNames: alterNames,
         intensity: intensity,
         triggers: triggers,
         notes: notes,

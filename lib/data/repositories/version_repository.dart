@@ -48,7 +48,7 @@ class VersionRepository {
       AppLogger.debug('Resposta do banco (getVersionById): $response');
 
       if (response == null) return null;
-      return Version.fromMap(response as Map<String, dynamic>);
+      return Version.fromMap(response);
     } on PostgrestException catch (e) {
       AppLogger.error('Erro PostgreSQL ao buscar versão: ${e.message}');
       throw Exception('Erro ao buscar versão: ${e.message}');
@@ -116,7 +116,7 @@ class VersionRepository {
 
       AppLogger.debug('Resposta do banco (createVersion): $response');
 
-      final newVersion = Version.fromMap(response as Map<String, dynamic>);
+      final newVersion = Version.fromMap(response);
       AppLogger.info('Versão criada com sucesso: ${newVersion.name}');
       return newVersion;
     } on PostgrestException catch (e) {
@@ -175,7 +175,7 @@ class VersionRepository {
       AppLogger.debug('Resposta do banco (updateVersion): $response');
 
       final updatedVersion =
-          Version.fromMap(response as Map<String, dynamic>);
+          Version.fromMap(response);
       AppLogger.info('Versão atualizada com sucesso: ${updatedVersion.name}');
       return updatedVersion;
     } on PostgrestException catch (e) {
