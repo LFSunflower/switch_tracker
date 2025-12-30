@@ -84,7 +84,7 @@ class SessionRepository {
         'intensity': intensity,
         'triggers': triggers,
         'is_cofront': isCofront,
-        'start_time': DateTime.now().toIso8601String(),
+        'start_time': DateTime.now().toUtc().toIso8601String(),
       };
 
       if (notes != null && notes.isNotEmpty) {
@@ -132,8 +132,8 @@ class SessionRepository {
       if (triggers != null) updateData['triggers'] = triggers;
       if (notes != null) updateData['notes'] = notes;
       if (isCofront != null) updateData['is_cofront'] = isCofront;
-      if (startTime != null) updateData['start_time'] = startTime.toIso8601String();
-      if (endTime != null) updateData['end_time'] = endTime.toIso8601String();
+      if (startTime != null) updateData['start_time'] = startTime.toUtc().toIso8601String();
+      if (endTime != null) updateData['end_time'] = endTime.toUtc().toIso8601String();
 
       if (updateData.isEmpty) {
         final currentSession = await _getSessionById(sessionId);

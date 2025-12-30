@@ -243,32 +243,19 @@ class CurrentFrontCard extends StatelessWidget {
 
   // Método que calcula a duração de uma sessão
   String _calculateDuration(DateTime start, DateTime? end) {
-    // Verifica se a sessão ainda está ativa (sem data de término)
-    if (end == null) {
-      // Calcula a diferença entre agora e o início
-      final difference = DateTime.now().difference(start);
-      // Obtém o número de horas
-      final hours = difference.inHours;
-      // Obtém o número de minutos restantes
-      final minutes = difference.inMinutes.remainder(60);
-      // Se houver horas, retorna o formato com horas e minutos
-      if (hours > 0) {
-        return '${hours}h ${minutes}m';
-      }
-      // Retorna apenas os minutos
-      return '${minutes}m';
-    }
-    // Calcula a diferença entre o término e o início
-    final difference = end.difference(start);
-    // Obtém o número de horas
+    // Usamos UTC para o cálculo da diferença, pois é o padrão universal
+    // e evita problemas com horário de verão ou fusos locais durante o cálculo.
+    final startTimeUtc = start.toUtc();
+    final endTimeUtc = end?.toUtc() ?? DateTime.now().toUtc();
+    
+    final difference = endTimeUtc.difference(startTimeUtc);
+    
     final hours = difference.inHours;
-    // Obtém o número de minutos restantes
     final minutes = difference.inMinutes.remainder(60);
-    // Se houver horas, retorna o formato com horas e minutos
+    
     if (hours > 0) {
       return '${hours}h ${minutes}m';
     }
-    // Retorna apenas os minutos
     return '${minutes}m';
   }
 }
