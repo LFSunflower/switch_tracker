@@ -11,9 +11,38 @@ class SessionController extends ChangeNotifier {
   FrontSession? _activeSession;
   bool _isLoading = false;
   String? _errorMessage;
+  String _currentFilter = 'all'; // 'all', 'today', 'week', 'month'
 
   // Getters
   List<FrontSession> get allSessions => _allSessions;
+
+  List<FrontSession> get filteredSessions {
+    if (_currentFilter == 'all') return _allSessions;
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    return _allSessions.where((session) {
+      final sessionDate = session.startTime;
+      if (_currentFilter == 'today') {
+        return sessionDate.isAfter(today);
+      } else if (_currentFilter == 'week') {
+        final weekAgo = now.subtract(const Duration(days: 7));
+        return sessionDate.isAfter(weekAgo);
+      } else if (_currentFilter == 'month') {
+        final monthAgo = DateTime(now.year, now.month - 1, now.day);
+        return sessionDate.isAfter(monthAgo);
+      }
+      return true;
+    }).toList();
+  }
+
+  String get currentFilter => _currentFilter;
+
+  void setFilter(String filter) {
+    _currentFilter = filter;
+    notifyListeners();
+  }
   FrontSession? get activeSession => _activeSession;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;

@@ -9,6 +9,7 @@ import '../../controllers/session_controller.dart';
 import '../../core/utils/logger.dart';
 // Importação do widget de lista de histórico
 import 'widgets/history_list.dart';
+import 'widgets/statistics_view.dart';
 
 // Definição do widget HistoryPage como StatefulWidget
 class HistoryPage extends StatefulWidget {
@@ -21,12 +22,19 @@ class HistoryPage extends StatefulWidget {
 }
 
 // Classe de estado para HistoryPage
-class _HistoryPageState extends State<HistoryPage> {
-  // Método chamado quando o widget é inicializado
+class _HistoryPageState extends State<HistoryPage> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
   @override
   void initState() {
     super.initState();
-    // Não carregar aqui, deixar que a HomePage carregue
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   // Método assíncrono para carregar as sessões
@@ -54,12 +62,22 @@ class _HistoryPageState extends State<HistoryPage> {
   Widget build(BuildContext context) {
     // Scaffold é a estrutura base da página
     return Scaffold(
+      appBar: AppBar(
+        toolbarHeight: 0,
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(icon: Icon(Icons.list), text: 'Sessões'),
+            Tab(icon: Icon(Icons.bar_chart), text: 'Estatísticas'),
+          ],
+        ),
+      ),
       // Consome o SessionController do Provider para reatividade
       body: Consumer<SessionController>(
         // Builder que reconstrói quando o controlador muda
         builder: (context, controller, _) {
           // Verifica se o controlador está carregando dados
-          if (controller.isLoading) {
+          if (controller.isLoading && controller.allSessions.isEmpty) {
             // Exibe um indicador de carregamento no centro
             return const Center(child: CircularProgressIndicator());
           }
@@ -111,14 +129,56 @@ class _HistoryPageState extends State<HistoryPage> {
           }
 
           // Se há sessões, exibe a lista com funcionalidade de refresh
-          return RefreshIndicator(
-            // Função chamada ao fazer pull-to-refresh
-            onRefresh: _loadSessions,
-            // Widget que exibe a lista de histórico
-            child: HistoryList(sessions: controller.allSessions),
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildFilterChip(context, controller, 'all', 'Tudo'),
+                      const SizedBox(width: 8),
+                      _buildFilterChip(context, controller, 'today', 'Hoje'),
+                      const SizedBox(width: 8),
+                      _buildFilterChip(context, controller, 'week', 'Esta Semana'),
+                      const SizedBox(width: 8),
+                      _buildFilterChip(context, controller, 'month', 'Este Mês'),
+                    ],
+                  ),
+                ),
+              ),
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    RefreshIndicator(
+                      // Função chamada ao fazer pull-to-refresh
+                      onRefresh: _loadSessions,
+                      // Widget que exibe a lista de histórico
+                      child: HistoryList(sessions: controller.filteredSessions),
+                    ),
+                    const StatisticsView(),
+                  ],
+                ),
+              ),
+            ],
           );
         },
       ),
+    );
+  }
+
+  Widget _buildFilterChip(BuildContext context, SessionController controller, String value, String label) {
+    final isSelected = controller.currentFilter == value;
+    return FilterChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (selected) {
+        if (selected) {
+          controller.setFilter(value);
+        }
+      },
     );
   }
 }
