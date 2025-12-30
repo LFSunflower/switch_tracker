@@ -27,7 +27,7 @@ class ProfilePage extends StatelessWidget {
                     width: 100,
                     height: 100,
                     decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.2),
+                      color: Colors.blue.withAlpha(200),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -188,7 +188,7 @@ class ProfilePage extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
+                color: Colors.blue.withAlpha(100),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(

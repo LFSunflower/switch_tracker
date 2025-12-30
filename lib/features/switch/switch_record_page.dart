@@ -324,7 +324,7 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
                                     // Decoração do container
                                     decoration: BoxDecoration(
                                       // Cor de fundo vermelha semi-transparente
-                                      color: Colors.red.withOpacity(0.1),
+                                      color: Colors.red.withAlpha(100),
                                       // Borda vermelha
                                       border: Border.all(color: Colors.red),
                                       // Bordas arredondadas

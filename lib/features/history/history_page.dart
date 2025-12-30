@@ -67,8 +67,10 @@ class _HistoryPageState extends State<HistoryPage> with SingleTickerProviderStat
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(icon: Icon(Icons.list), text: 'Sessões'),
-            Tab(icon: Icon(Icons.bar_chart), text: 'Estatísticas'),
+            Tab(icon: Icon(Icons.list),
+            text: 'Sessões'),
+            Tab(icon: Icon(Icons.bar_chart),
+            text: 'Estatísticas'),
           ],
         ),
       ),

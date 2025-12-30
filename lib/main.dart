@@ -42,14 +42,46 @@ class MyApp extends StatelessWidget {
           create: (_) => SessionController(),
         ),
       ],
-      child: MaterialApp(
-        title: 'Switch Tracker',
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.system,
-        home: const AuthGate(),
-        debugShowCheckedModeBanner: false,
+      child: Consumer3<UserController, VersionController, SessionController>(
+        builder: (context, userController, versionController, sessionController, _) {
+          final activeSession = sessionController.activeSession;
+          final darkMode = userController.darkModeEnabled;
+
+          Color themeSeedColor = AppTheme.primaryColor;
+
+          // Lógica de Tema Dinâmico
+          if (activeSession != null) {
+            // Regra de Alerta: Co-front + Intensidade >= 4
+            if (activeSession.isCofront && activeSession.intensity >= 4) {
+              themeSeedColor = Colors.red;
+            } else if (activeSession.alters.isNotEmpty) {
+              // Cor do primeiro alter em fronting
+              final firstAlter = versionController.getVersionById(activeSession.alters.first);
+              if (firstAlter != null) {
+                themeSeedColor = _parseColor(firstAlter.color);
+              }
+            }
+          }
+
+          return MaterialApp(
+            title: 'Switch Tracker',
+            theme: AppTheme.getDynamicTheme(themeSeedColor, Brightness.light),
+            darkTheme: AppTheme.getDynamicTheme(themeSeedColor, Brightness.dark),
+            themeMode: darkMode ? ThemeMode.dark : ThemeMode.light,
+            home: const AuthGate(),
+            debugShowCheckedModeBanner: false,
+          );
+        },
       ),
     );
+  }
+
+  Color _parseColor(String hexColor) {
+    try {
+      final hex = hexColor.replaceAll('#', '');
+      return Color(int.parse('FF$hex', radix: 16));
+    } catch (e) {
+      return AppTheme.primaryColor;
+    }
   }
 }

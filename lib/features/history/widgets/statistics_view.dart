@@ -104,7 +104,7 @@ class StatisticsView extends StatelessWidget {
               children: sortedTriggers.take(10).map((entry) {
                 return Chip(
                   label: Text('${entry.key} (${entry.value})'),
-                  backgroundColor: Colors.orange[100],
+                    backgroundColor: Colors.deepOrangeAccent.withAlpha(600),
                 );
               }).toList(),
             ),
