@@ -46,7 +46,7 @@ class UserController extends ChangeNotifier {
       }
 
       if (response != null) {
-        _currentUser = response as Map<String, dynamic>;
+        _currentUser = response;
         _loadPreferences();
       }
 
@@ -77,7 +77,7 @@ class UserController extends ChangeNotifier {
           .single();
 
       AppLogger.info('Novo perfil de usuário criado');
-      return response as Map<String, dynamic>;
+      return response;
     } catch (e) {
       AppLogger.error('Erro ao criar perfil de usuário: $e', StackTrace.current);
       return null;

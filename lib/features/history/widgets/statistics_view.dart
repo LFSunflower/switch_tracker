@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../../../controllers/session_controller.dart';
 import '../../../controllers/version_controller.dart';
 import '../../../data/models/front_session.dart';
-import '../../../data/models/version.dart';
 
 class StatisticsView extends StatelessWidget {
   const StatisticsView({super.key});
