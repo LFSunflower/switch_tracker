@@ -171,7 +171,7 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
                                           // Estilo do texto
                                           style: const TextStyle(
                                             // Tamanho da fonte
-                                            fontSize: 16,
+                                            fontSize: 18,
                                             // Peso da fonte em negrito
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -186,7 +186,7 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
                                             // Estilo do texto
                                             style: const TextStyle(
                                               // Tamanho da fonte
-                                              fontSize: 12,
+                                              fontSize: 13,
                                               // Cor cinzenta
                                               color: Colors.grey,
                                             ),
@@ -208,7 +208,7 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
                                     // Estilo do título
                                     style: TextStyle(
                                       // Tamanho da fonte
-                                      fontSize: 12,
+                                      fontSize: 14,
                                       // Peso da fonte em negrito
                                       fontWeight: FontWeight.bold,
                                       // Cor cinzenta
@@ -233,7 +233,7 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
                                     // Estilo do título
                                     style: TextStyle(
                                       // Tamanho da fonte
-                                      fontSize: 12,
+                                      fontSize: 14,
                                       // Peso da fonte em negrito
                                       fontWeight: FontWeight.bold,
                                       // Cor cinzenta
@@ -258,7 +258,7 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
                                     // Estilo do título
                                     style: TextStyle(
                                       // Tamanho da fonte
-                                      fontSize: 12,
+                                      fontSize: 14,
                                       // Peso da fonte em negrito
                                       fontWeight: FontWeight.bold,
                                       // Cor cinzenta
@@ -283,7 +283,7 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
                                     // Estilo do título
                                     style: TextStyle(
                                       // Tamanho da fonte
-                                      fontSize: 12,
+                                      fontSize: 14,
                                       // Peso da fonte em negrito
                                       fontWeight: FontWeight.bold,
                                       // Cor cinzenta
@@ -308,7 +308,7 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
                                     // Estilo do título
                                     style: TextStyle(
                                       // Tamanho da fonte
-                                      fontSize: 12,
+                                      fontSize: 14,
                                       // Peso da fonte em negrito
                                       fontWeight: FontWeight.bold,
                                       // Cor vermelha
@@ -324,7 +324,7 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
                                     // Decoração do container
                                     decoration: BoxDecoration(
                                       // Cor de fundo vermelha semi-transparente
-                                      color: Colors.red.withAlpha(100),
+                                      color: Colors.red.withAlpha(300),
                                       // Borda vermelha
                                       border: Border.all(color: Colors.red),
                                       // Bordas arredondadas
