@@ -439,8 +439,11 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
 
 // Classe do diálogo para registrar novo switch (StatefulWidget)
 class _SwitchFormDialog extends StatefulWidget {
+  final List<String>? initialAlters;
+  final bool isCoFront;
+
   // Construtor
-  const _SwitchFormDialog();
+  const _SwitchFormDialog({this.initialAlters, this.isCoFront = false});
 
   // Cria o estado associado
   @override
@@ -450,13 +453,20 @@ class _SwitchFormDialog extends StatefulWidget {
 // Classe de estado para _SwitchFormDialog
 class _SwitchFormDialogState extends State<_SwitchFormDialog> {
   // Lista de IDs dos alters selecionados
-  final List<String> _selectedAlterIds = [];
+  late final List<String> _selectedAlterIds;
   // Intensidade do switch de 1 a 5
   int _intensity = 3;
   // Lista de gatilhos selecionados
   final List<String> _selectedTriggers = [];
   // Indica se é um co-front (mais de um alter)
-  bool _isCoFront = false;
+  late bool _isCoFront;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedAlterIds = widget.initialAlters != null ? List.from(widget.initialAlters!) : [];
+    _isCoFront = widget.isCoFront;
+  }
   // Notas adicionais do switch
   String _notes = '';
   // Indica se está enviando dados
@@ -487,26 +497,6 @@ class _SwitchFormDialogState extends State<_SwitchFormDialog> {
         const SnackBar(content: Text('Selecione pelo menos um alter')),
       );
       return;
-    }
-
-    // Se já houver uma sessão ativa, perguntar o que fazer
-    if (sessionController.activeSession != null) {
-      final decision = await _showSessionConflictDialog();
-      if (decision == null) return; // Usuário cancelou
-
-      if (decision == 'cofront') {
-        // Se for co-front, adicionamos os alters da sessão anterior aos selecionados
-        setState(() {
-          for (var id in sessionController.activeSession!.alters) {
-            if (!_selectedAlterIds.contains(id)) {
-              _selectedAlterIds.add(id);
-            }
-          }
-          _isCoFront = true;
-        });
-        // Não retornamos, continuamos para o registro
-      }
-      // Se for 'new', o SessionController já vai encerrar a anterior automaticamente
     }
 
     setState(() => _isSubmitting = true);

@@ -184,6 +184,26 @@ class SessionRepository {
     }
   }
 
+  /// Encerrar uma sessão (definir end_time)
+  Future<void> endSession(String sessionId) async {
+    try {
+      AppLogger.info('Encerrando sessão no repositório: $sessionId');
+      
+      await _client
+          .from(_tableName)
+          .update({'end_time': DateTime.now().toUtc().toIso8601String()})
+          .eq('id', sessionId);
+          
+      AppLogger.info('Sessão encerrada com sucesso no repositório');
+    } on PostgrestException catch (e) {
+      AppLogger.error('Erro PostgreSQL ao encerrar sessão: ${e.message}');
+      throw Exception('Erro ao encerrar sessão: ${e.message}');
+    } catch (e) {
+      AppLogger.error('Erro desconhecido ao encerrar sessão: $e', StackTrace.current);
+      throw Exception('Erro desconhecido: $e');
+    }
+  }
+
   /// Buscar sessão por ID (privado)
   Future<FrontSession?> _getSessionById(String sessionId) async {
     try {
