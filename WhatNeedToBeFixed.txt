@@ -1,0 +1,5 @@
+1. Usuários não podem deletar sua própria conta
+    • É necessário criar uma Edge Function
+    • Implementar soft delete como solução temporária
+
+2. Nome de Usuário não aparece na página de perfil e consta como não informado sempre.
