@@ -46,7 +46,7 @@ class UserController extends ChangeNotifier {
       }
 
       if (response != null) {
-        _currentUser = response;
+        _currentUser = response as Map<String, dynamic>;
         _loadPreferences();
       }
 
@@ -77,7 +77,7 @@ class UserController extends ChangeNotifier {
           .single();
 
       AppLogger.info('Novo perfil de usuário criado');
-      return response;
+      return response as Map<String, dynamic>;
     } catch (e) {
       AppLogger.error('Erro ao criar perfil de usuário: $e', StackTrace.current);
       return null;
@@ -204,51 +204,18 @@ class UserController extends ChangeNotifier {
   /// Exportar dados do usuário
   Future<bool> exportUserData() async {
     _isLoading = true;
-    _errorMessage = null;
+    _errorMessage = 'Função em desenvolvimento. Em breve você poderá exportar seus dados em JSON/CSV.';
     notifyListeners();
-
-    try {
-      final user = _supabaseClient.auth.currentUser;
-      if (user == null) {
-        throw Exception('Usuário não autenticado');
-      }
-
-      // Buscar todas as sessões do usuário
-      final sessions = await _supabaseClient
-          .from('front_sessions')
-          .select()
-          .eq('user_id', user.id);
-
-      // Buscar todas as versões do usuário
-      final versions = await _supabaseClient
-          .from('versions')
-          .select()
-          .eq('user_id', user.id);
-
-      final exportData = {
-        'user': _currentUser,
-        'sessions': sessions,
-        'versions': versions,
-        'exported_at': DateTime.now().toIso8601String(),
-      };
-
-      AppLogger.info('Dados exportados com sucesso');
-      AppLogger.debug('Dados exportados: $exportData');
-
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _errorMessage = e.toString();
-      AppLogger.error('Erro ao exportar dados: $e', StackTrace.current);
-      notifyListeners();
-      return false;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
+    
+    // Simula um pequeno delay para o usuário ver o loading
+    await Future.delayed(const Duration(seconds: 1));
+    
+    _isLoading = false;
+    notifyListeners();
+    return false;
   }
 
-  /// Deletar conta do usuário
+  /// Deletar conta do usuário (Soft Delete temporário)
   Future<bool> deleteAccount(String password) async {
     _isLoading = true;
     _errorMessage = null;
@@ -270,21 +237,20 @@ class UserController extends ChangeNotifier {
         throw Exception('Senha incorreta');
       }
 
-      // Deletar sessões do usuário (cascata ocorre automaticamente)
-      // Deletar versões do usuário (cascata ocorre automaticamente)
-      // Deletar perfil do usuário
+      // Implementação de Soft Delete como solução temporária
+      // Marcamos o perfil como inativo em vez de deletar via admin (que requer Edge Function)
       await _supabaseClient
           .from('profiles')
-          .delete()
+          .update({
+            'is_active': false,
+            'deleted_at': DateTime.now().toUtc().toIso8601String(),
+          })
           .eq('id', user.id);
 
-      // Deletar conta de autenticação
-      await _supabaseClient.auth.admin.deleteUser(user.id);
-
-      // Fazer logout
+      // Fazer logout após marcar como deletado
       await _supabaseClient.auth.signOut();
 
-      AppLogger.info('Conta deletada com sucesso');
+      AppLogger.info('Conta marcada para deleção (Soft Delete)');
       notifyListeners();
       return true;
     } catch (e) {
