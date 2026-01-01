@@ -27,7 +27,7 @@ class ProfilePage extends StatelessWidget {
                     width: 100,
                     height: 100,
                     decoration: BoxDecoration(
-                      color: Colors.blue.withAlpha(200),
+                      color: Colors.blue.withOpacity(0.2),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -40,7 +40,7 @@ class ProfilePage extends StatelessWidget {
                   Consumer<UserController>(
                     builder: (context, userController, _) {
                       final profile = userController.currentUser;
-                      final fullName = profile?['full_name'] as String? ?? 'Usuário';
+                      final fullName = profile?['full_name'] as String? ?? profile?['username'] as String? ?? 'Usuário';
                       final id = profile?['id'] as String? ?? '';
                       return Column(
                         children: [
@@ -96,7 +96,8 @@ class ProfilePage extends StatelessWidget {
                     const SizedBox(height: 8),
                     Consumer<UserController>(
                       builder: (context, userController, _) {
-                        final fullName = userController.currentUser?['full_name'] as String? ?? 'Não informado';
+                        final profile = userController.currentUser;
+                        final fullName = profile?['full_name'] as String? ?? profile?['username'] as String? ?? 'Não informado';
                         return Text(
                           fullName,
                           style: const TextStyle(fontSize: 14),
@@ -168,27 +169,13 @@ class ProfilePage extends StatelessWidget {
             ),
             const SizedBox(height: 12),
 
-            // Botão Deletar Conta
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  _showDeleteAccountDialog(context);
-                },
-                icon: const Icon(Icons.delete_outline, color: Colors.red),
-                label: const Text(
-                  'Deletar Conta',
-                  style: TextStyle(color: Colors.red),
-                ),
-              ),
-            ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 16),
 
             // Informações
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.blue.withAlpha(100),
+                color: Colors.blue.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
@@ -245,35 +232,4 @@ class ProfilePage extends StatelessWidget {
     }
   }
 
-  void _showDeleteAccountDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Deletar Conta'),
-        content: const Text(
-          'Tem certeza que deseja deletar sua conta? Esta ação é irreversível e todos os seus dados serão perdidos.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Vá para Configurações para deletar a conta'),
-                ),
-              );
-            },
-            child: const Text(
-              'Deletar',
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

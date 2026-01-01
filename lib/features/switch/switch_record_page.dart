@@ -171,7 +171,7 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
                                           // Estilo do texto
                                           style: const TextStyle(
                                             // Tamanho da fonte
-                                            fontSize: 18,
+                                            fontSize: 16,
                                             // Peso da fonte em negrito
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -186,7 +186,7 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
                                             // Estilo do texto
                                             style: const TextStyle(
                                               // Tamanho da fonte
-                                              fontSize: 13,
+                                              fontSize: 12,
                                               // Cor cinzenta
                                               color: Colors.grey,
                                             ),
@@ -208,7 +208,7 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
                                     // Estilo do título
                                     style: TextStyle(
                                       // Tamanho da fonte
-                                      fontSize: 14,
+                                      fontSize: 12,
                                       // Peso da fonte em negrito
                                       fontWeight: FontWeight.bold,
                                       // Cor cinzenta
@@ -233,7 +233,7 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
                                     // Estilo do título
                                     style: TextStyle(
                                       // Tamanho da fonte
-                                      fontSize: 14,
+                                      fontSize: 12,
                                       // Peso da fonte em negrito
                                       fontWeight: FontWeight.bold,
                                       // Cor cinzenta
@@ -258,7 +258,7 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
                                     // Estilo do título
                                     style: TextStyle(
                                       // Tamanho da fonte
-                                      fontSize: 14,
+                                      fontSize: 12,
                                       // Peso da fonte em negrito
                                       fontWeight: FontWeight.bold,
                                       // Cor cinzenta
@@ -283,7 +283,7 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
                                     // Estilo do título
                                     style: TextStyle(
                                       // Tamanho da fonte
-                                      fontSize: 14,
+                                      fontSize: 12,
                                       // Peso da fonte em negrito
                                       fontWeight: FontWeight.bold,
                                       // Cor cinzenta
@@ -308,7 +308,7 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
                                     // Estilo do título
                                     style: TextStyle(
                                       // Tamanho da fonte
-                                      fontSize: 14,
+                                      fontSize: 12,
                                       // Peso da fonte em negrito
                                       fontWeight: FontWeight.bold,
                                       // Cor vermelha
@@ -324,7 +324,7 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
                                     // Decoração do container
                                     decoration: BoxDecoration(
                                       // Cor de fundo vermelha semi-transparente
-                                      color: Colors.red.withAlpha(300),
+                                      color: Colors.red.withOpacity(0.1),
                                       // Borda vermelha
                                       border: Border.all(color: Colors.red),
                                       // Bordas arredondadas
@@ -440,50 +440,50 @@ class _SwitchFormDialogState extends State<_SwitchFormDialog> {
 
   // Método que submete o novo switch
   void _submitSwitch() async {
-    // Obtém o controller de sessão
     final sessionController = context.read<SessionController>();
 
-    // Verifica se pelo menos um alter foi selecionado
     if (_selectedAlterIds.isEmpty) {
-      // Mostra mensagem de erro
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Selecione pelo menos um alter')),
       );
-      // Retorna sem fazer nada
       return;
     }
 
-    // Atualiza estado para mostrar carregamento
+    // Se já houver uma sessão ativa, perguntar o que fazer
+    if (sessionController.activeSession != null) {
+      final decision = await _showSessionConflictDialog();
+      if (decision == null) return; // Usuário cancelou
+
+      if (decision == 'cofront') {
+        // Se for co-front, adicionamos os alters da sessão anterior aos selecionados
+        setState(() {
+          for (var id in sessionController.activeSession!.alters) {
+            if (!_selectedAlterIds.contains(id)) {
+              _selectedAlterIds.add(id);
+            }
+          }
+          _isCoFront = true;
+        });
+        // Não retornamos, continuamos para o registro
+      }
+      // Se for 'new', o SessionController já vai encerrar a anterior automaticamente
+    }
+
     setState(() => _isSubmitting = true);
 
-    // Tenta registrar o switch
     try {
-      // Log informativo do switch
-      AppLogger.info(
-        'Iniciando switch com alters: $_selectedAlterIds, intensity: $_intensity',
-      );
-
-      // Cria nova sessão com os dados do formulário
       await sessionController.startNewSession(
-        // IDs dos alters que estão na frente
         alterIds: _selectedAlterIds,
-        // Intensidade do switch
         intensity: _intensity,
-        // Gatilhos que causaram o switch
         triggers: _selectedTriggers,
-        // Notas adicionais (nulo se vazio)
         notes: _notes.isEmpty ? null : _notes,
-        // Indica se é co-front
         isCoFront: _isCoFront,
       );
 
-      // Verifica se o widget ainda está montado
       if (mounted) {
-        // Mostra mensagem de sucesso
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Switch registrado com sucesso!')),
         );
-        // Fecha o diálogo
         Navigator.pop(context);
       }
     } catch (e) {
@@ -508,6 +508,28 @@ class _SwitchFormDialogState extends State<_SwitchFormDialog> {
         setState(() => _isSubmitting = false);
       }
     }
+  }
+
+  Future<String?> _showSessionConflictDialog() {
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Sessão em andamento'),
+        content: const Text(
+          'Já existe uma sessão ativa. O que deseja fazer?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'new'),
+            child: const Text('Nova Sessão Simples'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'cofront'),
+            child: const Text('Transformar em Co-front'),
+          ),
+        ],
+      ),
+    );
   }
 
   // Método build que constrói o diálogo
