@@ -1,5 +1,20 @@
-1. Usuários não podem deletar sua própria conta
+1. Usuários não podem deletar sua própria conta.
     • É necessário criar uma Edge Function
     • Implementar soft delete como solução temporária
+    • Deixar o botão com a opção apenas na página de configuração, e não na página de perfil.
 
 2. Nome de Usuário não aparece na página de perfil e consta como não informado sempre.
+
+3. Quando uma sessão é iniciada sem finalizar a anterior, a sessão anterior é salva sem data de encerramento, 
+e a sessão "continua" quando o alter é selecionado novamente, constando como se a sessão estivesse ativa desde anteriormente.
+    • O usuário pode corrigir isso por meio da edição de sessão, mas afeta as estatisticas.
+    • Possível solução: Ao criar nova sessão, a anterior é encerrada automaticamente, com o horário final definido.
+    • Implementação: Ao tentar criar uma sessão, se já houver uma sessão em andamento, é exibido uma mensagem perguntando se a nova inserção é 
+    uma nova sessão individual ou se é um co-front entre o alter da sessão anterior e o próximo alter. Ambas as opções encerram a sessão
+    anterior. Caso seja apenas uma nova sessão simples, as entradas são dadas normalmente. Caso seja um co-front, no formulario de
+    nova sessão o alter da sessão anterior é selecionado automaticamente assim como a opção "é um co-front?", para que o usuário
+    selecione os demais alters e outras informações.
+
+4. Exportação de dados não foi implementada mas não há aviso, apenas dá erro.
+    • Adicionar mensagem de função em desenvolvimento
+    • Implementar a função corretamente
