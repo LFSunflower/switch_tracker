@@ -82,6 +82,14 @@ class SessionController extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // Se houver uma sessão ativa, encerra ela antes de criar a nova
+      if (_activeSession != null) {
+        AppLogger.info('Encerrando sessão anterior automaticamente: ${_activeSession!.id}');
+        // Usamos o repositório diretamente para garantir o encerramento sem disparar múltiplos notifyListeners
+        await _repository.endSession(_activeSession!.id);
+        _activeSession = null;
+      }
+
       final newSession = await _repository.createSession(
         alterIds: alterIds,
         intensity: intensity,

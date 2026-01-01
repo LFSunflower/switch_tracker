@@ -358,14 +358,54 @@ class _SwitchRecordPageState extends State<SwitchRecordPage> {
       // Botão flutuante para criar novo switch
       floatingActionButton: FloatingActionButton(
         // Função chamada ao pressionar o botão
-        onPressed: () {
-          // Abre um diálogo
-          showDialog(
-            // Contexto da aplicação
-            context: context,
-            // Builder que constrói o diálogo
-            builder: (context) => _SwitchFormDialog(),
-          );
+        onPressed: () async {
+          final sessionController = context.read<SessionController>();
+          
+          if (sessionController.activeSession != null) {
+            final decision = await showDialog<String>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Sessão em andamento'),
+                content: const Text('Já existe uma sessão ativa. O que deseja fazer?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, 'new'),
+                    child: const Text('Nova Sessão Simples'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, 'cofront'),
+                    child: const Text('Transformar em Co-front'),
+                  ),
+                ],
+              ),
+            );
+
+            if (decision == null) return;
+
+            if (decision == 'cofront') {
+              if (mounted) {
+                showDialog(
+                  context: context,
+                  builder: (context) => _SwitchFormDialog(
+                    initialAlters: sessionController.activeSession!.alters,
+                    isCoFront: true,
+                  ),
+                );
+              }
+            } else {
+              if (mounted) {
+                showDialog(
+                  context: context,
+                  builder: (context) => const _SwitchFormDialog(),
+                );
+              }
+            }
+          } else {
+            showDialog(
+              context: context,
+              builder: (context) => const _SwitchFormDialog(),
+            );
+          }
         },
         // Texto que aparece ao manter pressionado
         tooltip: 'Novo Switch',
@@ -510,27 +550,7 @@ class _SwitchFormDialogState extends State<_SwitchFormDialog> {
     }
   }
 
-  Future<String?> _showSessionConflictDialog() {
-    return showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Sessão em andamento'),
-        content: const Text(
-          'Já existe uma sessão ativa. O que deseja fazer?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, 'new'),
-            child: const Text('Nova Sessão Simples'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, 'cofront'),
-            child: const Text('Transformar em Co-front'),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   // Método build que constrói o diálogo
   @override

@@ -37,15 +37,15 @@ class ProfilePage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Consumer<UserController>(
+                    Consumer<UserController>(
                     builder: (context, userController, _) {
                       final profile = userController.currentUser;
-                      final fullName = profile?['full_name'] as String? ?? profile?['username'] as String? ?? 'Usuário';
+                      final username = profile?['username'] as String? ?? 'Usuário';
                       final id = profile?['id'] as String? ?? '';
                       return Column(
                         children: [
                           Text(
-                            fullName,
+                            username,
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -78,7 +78,7 @@ class ProfilePage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Nome Completo
+            // Nome de Usuário
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -86,7 +86,7 @@ class ProfilePage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Nome',
+                      'Nome de Usuário',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
@@ -97,9 +97,9 @@ class ProfilePage extends StatelessWidget {
                     Consumer<UserController>(
                       builder: (context, userController, _) {
                         final profile = userController.currentUser;
-                        final fullName = profile?['full_name'] as String? ?? profile?['username'] as String? ?? 'Não informado';
+                        final username = profile?['username'] as String? ?? 'Não informado';
                         return Text(
-                          fullName,
+                          username,
                           style: const TextStyle(fontSize: 14),
                         );
                       },
@@ -231,5 +231,4 @@ class ProfilePage extends StatelessWidget {
       return 'Não informado';
     }
   }
-
 }

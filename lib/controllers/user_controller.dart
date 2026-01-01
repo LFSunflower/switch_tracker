@@ -69,7 +69,7 @@ class UserController extends ChangeNotifier {
           .from('profiles')
           .insert({
             'id': user.id,
-            'full_name': user.email?.split('@').first ?? 'Usuário',
+            'username': user.email?.split('@').first ?? 'Usuário',
             'notifications_enabled': true,
             'dark_mode_enabled': false,
           })

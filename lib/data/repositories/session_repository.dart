@@ -54,7 +54,7 @@ class SessionRepository {
       AppLogger.debug('Resposta do banco (getActiveSession): $response');
 
       if (response == null) return null;
-      return FrontSession.fromMap(response);
+      return FrontSession.fromMap(response as Map<String, dynamic>);
     } on PostgrestException catch (e) {
       AppLogger.error('Erro PostgreSQL ao buscar sessão ativa: ${e.message}');
       throw Exception('Erro ao buscar sessão ativa: ${e.message}');
@@ -101,7 +101,7 @@ class SessionRepository {
 
       AppLogger.debug('Resposta do banco (createSession): $response');
 
-      final newSession = FrontSession.fromMap(response);
+      final newSession = FrontSession.fromMap(response as Map<String, dynamic>);
       AppLogger.info('Sessão criada com sucesso');
       return newSession;
     } on PostgrestException catch (e) {
@@ -155,7 +155,7 @@ class SessionRepository {
       AppLogger.debug('Resposta do banco (updateSession): $response');
 
       final updatedSession =
-          FrontSession.fromMap(response);
+          FrontSession.fromMap(response as Map<String, dynamic>);
       AppLogger.info('Sessão atualizada com sucesso');
       return updatedSession;
     } on PostgrestException catch (e) {
@@ -194,7 +194,7 @@ class SessionRepository {
           .maybeSingle();
 
       if (response == null) return null;
-      return FrontSession.fromMap(response);
+      return FrontSession.fromMap(response as Map<String, dynamic>);
     } catch (e) {
       AppLogger.error('Erro ao buscar sessão por ID: $e', StackTrace.current);
       return null;
