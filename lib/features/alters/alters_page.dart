@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../controllers/version_controller.dart';
 import 'version_form_page.dart';
+import 'alter_details_page.dart';
 import 'widgets/version_card.dart';
 
 // Widget stateful que representa a página de alters
@@ -61,6 +62,14 @@ class _AltersPageState extends State<AltersPage> {
 
             return VersionCard(
               version: version,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AlterDetailsPage(alter: version),
+                  ),
+                );
+              },
               onEdit: () {
                 Navigator.push(
                   context,

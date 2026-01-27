@@ -290,3 +290,27 @@ create policy "observers_delete_owner"
 on public.observers
 for delete
 using (auth.uid() = owner_id);
+
+
+-- Função que encerra sessões abertas antes de inserir uma nova
+CREATE OR REPLACE FUNCTION public.close_previous_sessions()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Define o end_time como o start_time da nova sessão para todas as sessões abertas do mesmo usuário
+    UPDATE public.front_sessions
+    SET end_time = NEW.start_time,
+        updated_at = now()
+    WHERE user_id = NEW.user_id 
+      AND end_time IS NULL
+      AND id <> NEW.id;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger que dispara a função antes de cada inserção
+DROP TRIGGER IF EXISTS tr_close_previous_sessions ON public.front_sessions;
+CREATE TRIGGER tr_close_previous_sessions
+BEFORE INSERT ON public.front_sessions
+FOR EACH ROW
+EXECUTE FUNCTION public.close_previous_sessions();

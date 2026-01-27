@@ -10,6 +10,8 @@ class VersionCard extends StatelessWidget {
   final VoidCallback onEdit;
   // Callback executado quando o usuário clica em deletar
   final VoidCallback onDelete;
+  // Callback executado quando o usuário clica no card
+  final VoidCallback? onTap;
 
   // Construtor com parâmetros obrigatórios
   const VersionCard({
@@ -17,6 +19,7 @@ class VersionCard extends StatelessWidget {
     required this.version,
     required this.onEdit,
     required this.onDelete,
+    this.onTap,
   });
 
   // Método para converter string de cor hexadecimal em objeto Color
@@ -46,6 +49,7 @@ class VersionCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       // ListTile para exibir o conteúdo de forma estruturada
       child: ListTile(
+        onTap: onTap,
         // Widget inicial do ListTile - círculo com inicial do nome
         leading: Container(
           width: 50,
